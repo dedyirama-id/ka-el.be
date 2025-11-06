@@ -1,0 +1,8 @@
+node_modules
+.prisma
+.git
+Dockerfile
+.vscode
+.idea
+*.log
+.env*

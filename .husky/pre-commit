@@ -1,0 +1,9 @@
+BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$BRANCH_NAME" = "main" ] || [ "$BRANCH_NAME" = "master" ]; then
+  echo "Don't commit directly on branch $BRANCH_NAME. Use feature branch."
+  exit 1
+fi
+
+bun run format
+bun run lint

@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    // Environment
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+
+    // JSX (Hono JSX)
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
+
+    // Bun types
+    "types": ["bun-types"],
+
+    // Path alias
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+
+    // Interop & syntax
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
+
+    // Strictness & best practice
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+
+    // Decorator
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    // Output
+    "outDir": "dist",
+    "declaration": true,
+    "noEmit": false,
+    "skipLibCheck": true
+  },
+  "include": ["src"],
+  "exclude": ["dist", "node_modules"]
+}

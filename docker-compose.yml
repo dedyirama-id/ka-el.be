@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: ka-el_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kael_app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: kael_db
+    ports:
+      - "30001:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
