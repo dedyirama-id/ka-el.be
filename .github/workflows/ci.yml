@@ -48,5 +48,5 @@ jobs:
 
       - name: Migrate (CI DB)
         env:
-          DATABASE_URL: "postgresql://app:app@localhost:30001/ka-el_db"
+          DATABASE_URL: "postgresql://kael_app:app@localhost:30001/kael_db"
         run: bun run migrate:deploy
