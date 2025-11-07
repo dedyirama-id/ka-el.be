@@ -19,14 +19,11 @@ export class WebhookController {
     const req = await c.req.parseBody();
     const payload = ReceiveWaSchema.parse({ from: req.From, body: req.Body });
 
-    const message = await this.deps.receiveWaMessageUsecase.execute(payload);
-
-    switch (message.intent) {
+    switch (payload.body) {
       case "@ping":
-        await this.deps.replyPingWaMessageUsecase.execute(message.from);
+        await this.deps.replyPingWaMessageUsecase.execute(payload.from);
         break;
       default:
-        await this.deps.replyGeneralWaMessageUsecase.execute(message.from);
         break;
     }
     return c.text("OK");
