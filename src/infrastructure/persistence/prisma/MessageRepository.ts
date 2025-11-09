@@ -10,7 +10,7 @@ export class PrismaMessageRepository implements MessageRepository {
 
   async create(message: {
     id: string;
-    userId: string;
+    phoneNumber: string;
     role: MessageRole;
     content: string;
     meta: object;
@@ -18,7 +18,7 @@ export class PrismaMessageRepository implements MessageRepository {
     const row = await this.db.message.create({
       data: {
         id: message.id,
-        userId: message.userId,
+        phoneNumber: message.phoneNumber,
         role: message.role,
         content: message.content,
         meta: message.meta,

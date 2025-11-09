@@ -1,4 +1,3 @@
-import { NotFoundError } from "@/commons/exceptions/NotFoundError";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
 
