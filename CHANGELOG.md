@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.1.0...v1.2.0) (2025-11-09)
+
+
+### Features
+
+* add kael tag feature ([a040a69](https://github.com/dedyirama-id/ka-el.be/commit/a040a69eecb23379e1f5343fb748405eea49c268))
+
 # [1.1.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.0.0...v1.1.0) (2025-11-07)
 
 
