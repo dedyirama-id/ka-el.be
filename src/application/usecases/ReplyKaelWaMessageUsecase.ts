@@ -1,41 +1,24 @@
-import { NotFoundError } from "@/commons/exceptions/NotFoundError";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
-import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
 
 type Deps = {
-  userRepository: UserRepository;
   whatsappService: WhatsappService;
   messageRepository: MessageRepository;
   idGenerator: IdGeneratorService;
 };
 
-export class ReplyGeneralWaMessageUsecase {
+export class ReplyKaelWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
   async execute(to: string): Promise<object> {
     const normalizedPhone = this.ensureWhatsappPrefix(to);
     const targetPhone = normalizedPhone.replace(/^whatsapp:/, "");
 
-    const user = await this.deps.userRepository.findByPhone(targetPhone);
-    if (!user) {
-      throw new NotFoundError("User not found");
-    }
-
     const message = await this.deps.whatsappService.sendWhatsApp(
       targetPhone,
-      `Hi ${user.name}, layanan sedang dalam pengembangan.`,
+      `✨ SELAMAT DATANG DI *KA'EL* ✨ \nKa'el merupakan layanan yang akan membantu anda menemukan berbagai event yang sesuai dengan minat anda. \n\n> Saat ini anda berinteraksi dengan Bot. Untuk mulai menggunakan layanan, silahkan kirimkan salah satu pesan berikut ini: \n> - @kael \n> - @ping`,
     );
-
-    const messageId = this.deps.idGenerator.generateId();
-    this.deps.messageRepository.create({
-      id: messageId,
-      phoneNumber: targetPhone,
-      role: "system",
-      content: message.text,
-      meta: message,
-    });
 
     return message;
   }

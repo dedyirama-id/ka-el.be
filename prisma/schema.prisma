@@ -32,15 +32,15 @@ model User {
 }
 
 model Message {
-  id     String @id @default(uuid())
-  userId String
+  id          String @id @default(uuid())
+  phoneNumber String
 
   role      MessageRole
   content   String
   meta      Json?
   createdAt DateTime    @default(now())
 
-  user User @relation(fields: [userId], references: [id])
+  user User? @relation(fields: [phoneNumber], references: [phoneE164])
 
   @@map("messages")
 }

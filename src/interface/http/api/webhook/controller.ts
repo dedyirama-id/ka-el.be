@@ -1,5 +1,6 @@
 import type { ReceiveWaMessageUsecase } from "@/application/usecases/ReceiveWaMessageUsecase";
 import type { ReplyGeneralWaMessageUsecase } from "@/application/usecases/ReplyGeneralWaMessageUsecase";
+import type { ReplyKaelWaMessageUsecase } from "@/application/usecases/ReplyKaelWaMessageUsecase";
 import type { ReplyPingWaMessageUsecase } from "@/application/usecases/ReplyPingWaMessageUsecase";
 import { ReceiveWaSchema } from "@/interface/validators/ReceiveWaSchema";
 import type { Context } from "hono";
@@ -8,6 +9,7 @@ type Deps = {
   receiveWaMessageUsecase: ReceiveWaMessageUsecase;
   replyPingWaMessageUsecase: ReplyPingWaMessageUsecase;
   replyGeneralWaMessageUsecase: ReplyGeneralWaMessageUsecase;
+  replyKaelWaMessageUsecase: ReplyKaelWaMessageUsecase;
 };
 
 export class WebhookController {
@@ -19,9 +21,14 @@ export class WebhookController {
     const req = await c.req.parseBody();
     const payload = ReceiveWaSchema.parse({ from: req.From, body: req.Body });
 
-    switch (payload.body) {
+    const message = await this.deps.receiveWaMessageUsecase.execute(payload);
+
+    switch (message.intent) {
       case "@ping":
         await this.deps.replyPingWaMessageUsecase.execute(payload.from);
+        break;
+      case "@kael":
+        await this.deps.replyKaelWaMessageUsecase.execute(payload.from);
         break;
       default:
         break;
