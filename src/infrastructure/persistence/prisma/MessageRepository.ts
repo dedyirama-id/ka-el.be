@@ -1,6 +1,8 @@
-import type { MessageRole, Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import type { MessageRole, PrismaClient } from "@prisma/client";
 import type { Message } from "@/domain/entities/Message";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
+import type { JsonValue } from "@/domain/value-objects/JsonValue";
 import { toDomainMessage } from "@/infrastructure/mapper/message-mapper";
 
 type PrismaTx = PrismaClient | Prisma.TransactionClient;
@@ -13,7 +15,7 @@ export class PrismaMessageRepository implements MessageRepository {
     phoneNumber: string;
     role: MessageRole;
     content: string;
-    meta: object;
+    meta: JsonValue | null;
   }): Promise<Message> {
     const row = await this.db.message.create({
       data: {
@@ -21,7 +23,7 @@ export class PrismaMessageRepository implements MessageRepository {
         phoneNumber: message.phoneNumber,
         role: message.role,
         content: message.content,
-        meta: message.meta,
+        meta: message.meta ?? Prisma.JsonNull,
       },
     });
     return toDomainMessage(row);

@@ -7,7 +7,7 @@ export class Message {
     public readonly phoneNumber: string,
     public role: MessageRole,
     public content: string,
-    public meta: JsonValue,
+    public meta: JsonValue | null,
     public readonly createdAt: Date,
   ) {}
 }
