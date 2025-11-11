@@ -1,5 +1,6 @@
 import type { Message } from "../entities/Message";
 import type { MessageRole } from "../value-objects/MessageRole";
+import type { JsonValue } from "../value-objects/JsonValue";
 
 export interface MessageRepository {
   create(message: {
@@ -7,6 +8,6 @@ export interface MessageRepository {
     phoneNumber: string;
     role: MessageRole;
     content: string;
-    meta: object | null;
+    meta: JsonValue | null;
   }): Promise<Message>;
 }

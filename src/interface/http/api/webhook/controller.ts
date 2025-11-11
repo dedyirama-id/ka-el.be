@@ -3,8 +3,12 @@ import type { ReplyGeneralWaMessageUsecase } from "@/application/usecases/ReplyG
 import type { ReplyKaelWaMessageUsecase } from "@/application/usecases/ReplyKaelWaMessageUsecase";
 import type { ReplyPingWaMessageUsecase } from "@/application/usecases/ReplyPingWaMessageUsecase";
 import type { ReplyRegisterWaMessageUsecase } from "@/application/usecases/ReplyRegisterWaMessageUsecase";
+import { env } from "@/commons/config/env";
 import { ReceiveWaSchema } from "@/interface/validators/ReceiveWaSchema";
+import type { FormDataEntryValue } from "bun";
 import type { Context } from "hono";
+import { Buffer } from "node:buffer";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 type Deps = {
   receiveWaMessageUsecase: ReceiveWaMessageUsecase;
@@ -20,8 +24,15 @@ export class WebhookController {
   }
 
   async receiveWaMessage(c: Context) {
-    const req = await c.req.parseBody();
-    const payload = ReceiveWaSchema.parse({ from: req.From, body: req.Body });
+    const formBody = await c.req.parseBody();
+    if (env.WHATSAPP_PROVIDER === "twilio") {
+      const isValid = this.verifyTwilioSignature(c, formBody);
+      if (!isValid) {
+        return c.text("Invalid Twilio signature", 403);
+      }
+    }
+
+    const payload = ReceiveWaSchema.parse({ from: formBody.From, body: formBody.Body });
 
     const message = await this.deps.receiveWaMessageUsecase.execute(payload);
 
@@ -36,8 +47,41 @@ export class WebhookController {
         await this.deps.replyRegisterWaMessageUsecase.execute(message.from, message.value);
         break;
       default:
+        await this.deps.replyGeneralWaMessageUsecase.execute(payload.from);
         break;
     }
     return c.text("OK");
+  }
+
+  private verifyTwilioSignature(c: Context, params: Record<string, FormDataEntryValue>): boolean {
+    const signature = c.req.header("x-twilio-signature");
+    if (!signature || !env.TWILIO_AUTH_TOKEN) {
+      return false;
+    }
+
+    const expected = this.buildTwilioSignature(c, params);
+
+    try {
+      const providedBuf = Buffer.from(signature, "base64");
+      const expectedBuf = Buffer.from(expected, "base64");
+      return providedBuf.length === expectedBuf.length && timingSafeEqual(providedBuf, expectedBuf);
+    } catch {
+      return false;
+    }
+  }
+
+  private buildTwilioSignature(c: Context, params: Record<string, FormDataEntryValue>): string {
+    const url = new URL(c.req.url);
+    let payload = url.toString();
+
+    const keys = Object.keys(params).sort();
+    for (const key of keys) {
+      const value = params[key];
+      if (typeof value === "string") {
+        payload += key + value;
+      }
+    }
+
+    return createHmac("sha1", env.TWILIO_AUTH_TOKEN).update(payload).digest("base64");
   }
 }

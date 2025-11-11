@@ -25,16 +25,19 @@ export class ReplyGeneralWaMessageUsecase {
 
     const message = await this.deps.whatsappService.sendWhatsApp(
       targetPhone,
-      `Hi ${user.name}, layanan sedang dalam pengembangan.`,
+      `Hi ${this.toTitleCase(user.name)}, layanan saat ini sedang dalam pengembangan.`,
     );
 
     const messageId = this.deps.idGenerator.generateId();
-    this.deps.messageRepository.create({
+    await this.deps.messageRepository.create({
       id: messageId,
       phoneNumber: targetPhone,
       role: "system",
       content: message.text,
-      meta: message,
+      meta: {
+        id: message.id,
+        text: message.text,
+      },
     });
 
     return message;
@@ -42,5 +45,9 @@ export class ReplyGeneralWaMessageUsecase {
 
   private ensureWhatsappPrefix(phone: string): string {
     return phone.startsWith("whatsapp:") ? phone : `whatsapp:${phone}`;
+  }
+
+  toTitleCase(str: string) {
+    return str.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
   }
 }

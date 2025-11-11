@@ -15,12 +15,16 @@ export class ReplyKaelWaMessageUsecase {
     const normalizedPhone = this.ensureWhatsappPrefix(to);
     const targetPhone = normalizedPhone.replace(/^whatsapp:/, "");
 
-    const message = await this.deps.whatsappService.sendWhatsApp(
-      targetPhone,
-      `✨ SELAMAT DATANG DI *KA'EL* ✨ \nKa'el merupakan layanan yang akan membantu anda menemukan berbagai event yang sesuai dengan minat anda. \n\n> Saat ini anda berinteraksi dengan Bot. Untuk mulai menggunakan layanan, silahkan kirimkan salah satu pesan berikut ini: \n> - @kael \n> - @ping`,
-    );
+    let message = "";
+    message += "✨ SELAMAT DATANG DI *KA'EL* ✨ \n";
+    message +=
+      "Ka'el merupakan layanan yang akan membantu anda menemukan berbagai event yang sesuai dengan minat anda. \n\n";
+    message +=
+      "> Saat ini anda berinteraksi dengan Bot. Untuk mulai menggunakan layanan, silahkan kirimkan salah satu pesan berikut ini: \n";
+    message += "> `@register <nama>`";
 
-    return message;
+    const messageSent = await this.deps.whatsappService.sendWhatsApp(targetPhone, message);
+    return messageSent;
   }
 
   private ensureWhatsappPrefix(phone: string): string {
