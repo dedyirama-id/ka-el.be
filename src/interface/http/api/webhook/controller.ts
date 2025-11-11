@@ -2,6 +2,7 @@ import type { ReceiveWaMessageUsecase } from "@/application/usecases/ReceiveWaMe
 import type { ReplyGeneralWaMessageUsecase } from "@/application/usecases/ReplyGeneralWaMessageUsecase";
 import type { ReplyKaelWaMessageUsecase } from "@/application/usecases/ReplyKaelWaMessageUsecase";
 import type { ReplyPingWaMessageUsecase } from "@/application/usecases/ReplyPingWaMessageUsecase";
+import type { ReplyRegisterWaMessageUsecase } from "@/application/usecases/ReplyRegisterWaMessageUsecase";
 import { ReceiveWaSchema } from "@/interface/validators/ReceiveWaSchema";
 import type { Context } from "hono";
 
@@ -10,6 +11,7 @@ type Deps = {
   replyPingWaMessageUsecase: ReplyPingWaMessageUsecase;
   replyGeneralWaMessageUsecase: ReplyGeneralWaMessageUsecase;
   replyKaelWaMessageUsecase: ReplyKaelWaMessageUsecase;
+  replyRegisterWaMessageUsecase: ReplyRegisterWaMessageUsecase;
 };
 
 export class WebhookController {
@@ -29,6 +31,9 @@ export class WebhookController {
         break;
       case "@kael":
         await this.deps.replyKaelWaMessageUsecase.execute(payload.from);
+        break;
+      case "@register":
+        await this.deps.replyRegisterWaMessageUsecase.execute(message.from, message.value);
         break;
       default:
         break;

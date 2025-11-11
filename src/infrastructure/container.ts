@@ -25,6 +25,7 @@ import { BaileysWhatsapp } from "./whatsapp/baileys/BaileysWhatsapp";
 import { TwilioWhatsapp } from "./whatsapp/twilio/TwilioWhatsapp";
 import { WhatsappServiceAdapter } from "./whatsapp/WhatsappServiceAdapter";
 import { ReplyKaelWaMessageUsecase } from "@/application/usecases/ReplyKaelWaMessageUsecase";
+import { ReplyRegisterWaMessageUsecase } from "@/application/usecases/ReplyRegisterWaMessageUsecase";
 
 export interface Cradle {
   prisma: PrismaClient;
@@ -40,6 +41,7 @@ export interface Cradle {
   receiveWaMessageUsecase: ReceiveWaMessageUsecase;
   replyPingWaMessageUsecase: ReplyPingWaMessageUsecase;
   replyKaelWaMessageUsecase: ReplyKaelWaMessageUsecase;
+  replyRegisterWaMessageUsecase: ReplyRegisterWaMessageUsecase;
 }
 
 const container: AwilixContainer<Cradle> = createContainer<Cradle>({
@@ -78,6 +80,7 @@ container.register({
   receiveWaMessageUsecase: asClass(ReceiveWaMessageUsecase).singleton(),
   replyPingWaMessageUsecase: asClass(ReplyPingWaMessageUsecase).singleton(),
   replyKaelWaMessageUsecase: asClass(ReplyKaelWaMessageUsecase).singleton(),
+  replyRegisterWaMessageUsecase: asClass(ReplyRegisterWaMessageUsecase).singleton(),
 });
 
 export default container;
