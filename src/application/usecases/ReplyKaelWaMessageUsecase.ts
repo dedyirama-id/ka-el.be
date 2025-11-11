@@ -16,11 +16,13 @@ export class ReplyKaelWaMessageUsecase {
     const targetPhone = normalizedPhone.replace(/^whatsapp:/, "");
 
     let message = "";
-    message += "✨ SELAMAT DATANG DI *KA'EL* ✨ \n";
+    message += "📚 *SELAMAT DATANG DI KA'EL* 📚\n";
     message +=
-      "Ka'el merupakan layanan yang akan membantu anda menemukan berbagai event yang sesuai dengan minat anda. \n\n";
+      "Ka'el adalah layanan cerdas yang membantu kamu menemukan berbagai event, lomba, magang, hingga pendanaan yang sesuai dengan minat dan profilmu.\n\n";
     message +=
-      "> Saat ini anda berinteraksi dengan Bot. Untuk mulai menggunakan layanan, silahkan kirimkan salah satu pesan berikut ini: \n";
+      "Temukan peluang pengembangan diri dengan cara yang lebih mudah, cepat, dan personal!\n\n";
+    message +=
+      "> Saat ini anda berinteraksi dengan bot Ka'el. Sebelum menggunakan layanan, silahkan mendaftar akun dengan perintah berikut: \n";
     message += "> `@register <nama>`";
 
     const messageSent = await this.deps.whatsappService.sendWhatsApp(targetPhone, message);
