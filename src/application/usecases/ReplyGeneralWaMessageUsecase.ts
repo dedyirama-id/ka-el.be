@@ -1,6 +1,7 @@
 import { NotFoundError } from "@/commons/exceptions/NotFoundError";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
+import type { AIService } from "@/domain/Services/AIService";
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
 
@@ -9,13 +10,14 @@ type Deps = {
   whatsappService: WhatsappService;
   messageRepository: MessageRepository;
   idGenerator: IdGeneratorService;
+  aiService: AIService;
 };
 
 export class ReplyGeneralWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(to: string): Promise<object> {
-    const normalizedPhone = this.ensureWhatsappPrefix(to);
+  async execute(phoneNumber: string, message: string): Promise<object> {
+    const normalizedPhone = this.ensureWhatsappPrefix(phoneNumber);
     const targetPhone = normalizedPhone.replace(/^whatsapp:/, "");
 
     const user = await this.deps.userRepository.findByPhone(targetPhone);
@@ -23,24 +25,22 @@ export class ReplyGeneralWaMessageUsecase {
       throw new NotFoundError("User not found");
     }
 
-    const message = await this.deps.whatsappService.sendWhatsApp(
-      targetPhone,
-      `Hi ${this.toTitleCase(user.name)}, layanan saat ini sedang dalam pengembangan.`,
-    );
+    const replyMessage = await this.deps.aiService.replyGeneralMessage(message);
+    const messageSent = await this.deps.whatsappService.sendWhatsApp(targetPhone, replyMessage);
 
     const messageId = this.deps.idGenerator.generateId();
     await this.deps.messageRepository.create({
       id: messageId,
       phoneNumber: targetPhone,
       role: "system",
-      content: message.text,
+      content: messageSent.text,
       meta: {
-        id: message.id,
-        text: message.text,
+        id: messageSent.id,
+        text: messageSent.text,
       },
     });
 
-    return message;
+    return messageSent;
   }
 
   private ensureWhatsappPrefix(phone: string): string {

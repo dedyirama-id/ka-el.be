@@ -18,6 +18,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@google/genai": "^1.29.0",
     "@hono/oauth-providers": "^0.8.5",
     "@hono/zod-validator": "^0.7.4",
     "@prisma/client": "^6.17.1",

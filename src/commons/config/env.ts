@@ -44,4 +44,6 @@ export const env = cleanEnv(Bun.env, {
   TWILIO_SID: twilioSid({ default: "" }),
   TWILIO_AUTH_TOKEN: str({ default: "" }),
   TWILIO_SANDBOX_NUMBER: whatsappSandboxNumber({ default: "" }),
+
+  GEMINI_API_KEY: str(),
 });

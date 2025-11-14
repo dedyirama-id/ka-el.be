@@ -8,6 +8,7 @@ import { env } from "@/commons/config/env";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
+import type { AIService } from "@/domain/Services/AIService";
 import {
   type AwilixContainer,
   asClass,
@@ -26,6 +27,7 @@ import { TwilioWhatsapp } from "./whatsapp/twilio/TwilioWhatsapp";
 import { WhatsappServiceAdapter } from "./whatsapp/WhatsappServiceAdapter";
 import { ReplyKaelWaMessageUsecase } from "@/application/usecases/ReplyKaelWaMessageUsecase";
 import { ReplyRegisterWaMessageUsecase } from "@/application/usecases/ReplyRegisterWaMessageUsecase";
+import { GeminiAIService } from "./ai/gemini/GeminiAIService";
 
 export interface Cradle {
   prisma: PrismaClient;
@@ -34,6 +36,7 @@ export interface Cradle {
   waLinkTtlMs: number;
   whatsappMessenger: WhatsAppMessenger;
   whatsappService: WhatsappService;
+  aiService: AIService;
   userRepository: UserRepository;
   idGenerator: IdGenerator;
   replyGeneralWaMessageUsecase: ReplyGeneralWaMessageUsecase;
@@ -67,6 +70,7 @@ container.register({
   whatsappService: asFunction(
     ({ whatsappMessenger }) => new WhatsappServiceAdapter(whatsappMessenger),
   ).singleton(),
+  aiService: asClass(GeminiAIService).singleton(),
   idGenerator: asClass(IdGenerator).singleton(),
 
   // Repository
