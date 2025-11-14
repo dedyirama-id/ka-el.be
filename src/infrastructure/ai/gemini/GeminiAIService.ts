@@ -34,4 +34,28 @@ export class GeminiAIService implements AIService {
 
     return responseText;
   }
+
+  async proofreadingMessage(message: string): Promise<string> {
+    const prompt = message.trim();
+    if (!prompt) {
+      throw new Error("Message for Gemini AI must not be empty");
+    }
+
+    const result = await this.ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: message,
+      config: {
+        temperature: 0.7,
+        systemInstruction:
+          "You are a proofreading tool. Respond only with the corrected version of the user's input. Do not add explanations or extra text.",
+      },
+    });
+
+    const responseText = result.text;
+    if (!responseText) {
+      throw new Error("Gemini AI returned an empty response");
+    }
+
+    return responseText;
+  }
 }

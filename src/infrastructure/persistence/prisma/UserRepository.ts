@@ -23,4 +23,15 @@ export class PrismaUserRepository implements UserRepository {
     const row = await this.db.user.findUnique({ where: { phoneE164: phone } });
     return row ? toDomainUser(row) : null;
   }
+
+  async updateProfile(userId: string, profile: string): Promise<User> {
+    const row = await this.db.user.update({
+      where: { id: userId },
+      data: {
+        profile,
+      },
+    });
+
+    return toDomainUser(row);
+  }
 }
