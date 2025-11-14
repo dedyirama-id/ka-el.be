@@ -1,3 +1,11 @@
+## [1.6.1](https://github.com/dedyirama-id/ka-el.be/compare/v1.6.0...v1.6.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* container error and file without ts extension ([1724c0c](https://github.com/dedyirama-id/ka-el.be/commit/1724c0cb253e212cecc817431278092713ef09bb))
+* container error and file without ts extension ([6db77a0](https://github.com/dedyirama-id/ka-el.be/commit/6db77a0a79acf0a763eeb8cf286ba868cadf3fe0))
+
 # [1.6.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.5.0...v1.6.0) (2025-11-14)
 
 
