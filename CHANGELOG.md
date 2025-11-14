@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.3.0...v1.4.0) (2025-11-14)
+
+
+### Features
+
+* implements ai reply for general message ([364736b](https://github.com/dedyirama-id/ka-el.be/commit/364736b91e6b102cf6cb77758c3b7fb28e2ec3a1))
+
 # [1.3.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.2.0...v1.3.0) (2025-11-11)
 
 ### Bug Fixes
