@@ -2,7 +2,7 @@ export class User {
   constructor(
     public readonly id: string,
     public name: string,
-    public profile: string,
+    public profile: string | null,
     public phoneE164: string,
     public tz: string | null,
     public readonly createdAt: Date,
