@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.4.0...v1.5.0) (2025-11-14)
+
+
+### Features
+
+* implement profile feature ([30aa04d](https://github.com/dedyirama-id/ka-el.be/commit/30aa04d3e96687b1297805ed3a72cf1f5054f133))
+
 # [1.4.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.3.0...v1.4.0) (2025-11-14)
 
 
