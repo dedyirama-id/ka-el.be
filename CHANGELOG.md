@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.5.0...v1.6.0) (2025-11-14)
+
+
+### Features
+
+* add response message for profile and proof profile ([ac0e58b](https://github.com/dedyirama-id/ka-el.be/commit/ac0e58b32c0e02bfa2276bf8fb3df3ff76d7cdd6))
+
 # [1.5.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.4.0...v1.5.0) (2025-11-14)
 
 
