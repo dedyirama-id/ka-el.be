@@ -1,5 +1,4 @@
 import { NotFoundError } from "@/commons/exceptions/NotFoundError";
-import type { MessageReceived } from "@/domain/entities/MessageReceived";
 import type { MessageSent } from "@/domain/entities/MessageSent";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
