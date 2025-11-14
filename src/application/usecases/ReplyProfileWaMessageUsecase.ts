@@ -26,7 +26,7 @@ export class ReplyProfileWaMessageUsecase {
         "Kamu masih belum mengirimkan deskripsi profile. Tolong berikan Kael deskripsi profilemu. Contoh: @profile saya ingin mengikuti lomba BPC (Business Plan Competition)",
       );
     }
-    
+
     const existingUser = await this.deps.userRepository.findByPhone(phoneNumber);
     if (!existingUser) {
       throw new NotFoundError("User Not Found");
@@ -41,6 +41,7 @@ export class ReplyProfileWaMessageUsecase {
     );
     return message;
   }
+
   private ensureWhatsappPrefix(phone: string): string {
     return phone.startsWith("whatsapp:") ? phone : `whatsapp:${phone}`;
   }
