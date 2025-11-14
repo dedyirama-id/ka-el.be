@@ -47,7 +47,7 @@ export class WebhookController {
         await this.deps.replyRegisterWaMessageUsecase.execute(message.from, message.value);
         break;
       default:
-        await this.deps.replyGeneralWaMessageUsecase.execute(payload.from);
+        await this.deps.replyGeneralWaMessageUsecase.execute(payload.from, message.text);
         break;
     }
     return c.text("OK");
