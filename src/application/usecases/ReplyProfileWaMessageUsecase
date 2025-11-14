@@ -3,10 +3,14 @@ import type { MessageRepository } from "@/domain/repositories/MessageRepository"
 import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 import { NotFoundError } from "@/commons/exceptions/NotFoundError";
+import type { WhatsappService } from "@/domain/Services/WhatsappService";
+import { AIService } from '../../../dist/domain/Services/AIService';
 type Deps = {
   idGenerator: IdGeneratorService;
   messageRepository: MessageRepository;
   userRepository: UserRepository;
+  whatsappService: WhatsappService;
+  aiService: AIService;
 };
 
 
@@ -17,13 +21,21 @@ export class replyProfileWaMessageUsecase {
     const normalizedPhone = this.ensureWhatsappPrefix(from);
     const phoneNumber = normalizedPhone.replace(/^whatsapp:/, "");
 
+    if (!value){
+      await this.deps.whatsappService.sendWhatsApp(
+        phoneNumber,
+        "Kamu masih belum mengirimkan deskripsi profile. Tolong berikan Kael deskripsi profilemu. Contoh: @profile saya ingin mengikuti lomba BPC (Business Plan Competition)");
+    }
     const existingUser = await this.deps.userRepository.findByPhone(phoneNumber);
     if (!existingUser) {
       throw new NotFoundError('User Not Found');
     }
 
-    const updatedUser = await this.deps.userRepository.updateProfile(existingUser.id, value);
-
+    const proofedProfile = await this.deps.aiService.proofreadingMessage(value);
+    const updatedUser = await this.deps.userRepository.updateProfile(existingUser.id, proofedProfile);
+    await this.deps.whatsappService.sendWhatsApp(
+        phoneNumber,
+        `Okey, Kael sudah memperbarui profilemu! selamat menunggu notifikasi lomba yang sesuai dengan minatmu, ${existingUser.name}`,)
     return updatedUser;
   }
   private ensureWhatsappPrefix(phone: string): string {
