@@ -3,6 +3,7 @@ import type { ReplyGeneralWaMessageUsecase } from "@/application/usecases/ReplyG
 import type { ReplyKaelWaMessageUsecase } from "@/application/usecases/ReplyKaelWaMessageUsecase";
 import type { ReplyPingWaMessageUsecase } from "@/application/usecases/ReplyPingWaMessageUsecase";
 import type { ReplyRegisterWaMessageUsecase } from "@/application/usecases/ReplyRegisterWaMessageUsecase";
+import type { ReplyProfileWaMessageUsecase } from "@/application/usecases/ReplyProfileWaMessageUsecase";
 import { env } from "@/commons/config/env";
 import { ReceiveWaSchema } from "@/interface/validators/ReceiveWaSchema";
 import type { FormDataEntryValue } from "bun";
@@ -16,6 +17,7 @@ type Deps = {
   replyGeneralWaMessageUsecase: ReplyGeneralWaMessageUsecase;
   replyKaelWaMessageUsecase: ReplyKaelWaMessageUsecase;
   replyRegisterWaMessageUsecase: ReplyRegisterWaMessageUsecase;
+  replyProfileWaMessageUsecase: ReplyProfileWaMessageUsecase;
 };
 
 export class WebhookController {
@@ -45,6 +47,9 @@ export class WebhookController {
         break;
       case "@register":
         await this.deps.replyRegisterWaMessageUsecase.execute(message.from, message.value);
+        break;
+      case "@profile":
+        await this.deps.replyProfileWaMessageUsecase.execute(message.from, message.value);
         break;
       default:
         await this.deps.replyGeneralWaMessageUsecase.execute(payload.from, message.text);

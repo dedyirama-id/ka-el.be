@@ -1,0 +1,36 @@
+import { MessageReceived } from "@/domain/entities/MessageReceived";
+import type { MessageRepository } from "@/domain/repositories/MessageRepository";
+import type { UserRepository } from "@/domain/repositories/UserRepository";
+import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
+import { NotFoundError } from "@/commons/exceptions/NotFoundError";
+type Deps = {
+  idGenerator: IdGeneratorService;
+  messageRepository: MessageRepository;
+  userRepository: UserRepository;
+};
+
+
+export class replyProfileWaMessageUsecase {
+  constructor(private readonly deps: Deps) { }
+
+  async execute(from: string, value: string): Promise<MessageReceived> {
+    const normalizedPhone = this.ensureWhatsappPrefix(from);
+    const phoneNumber = normalizedPhone.replace(/^whatsapp:/, "");
+
+    const existingUser = await this.deps.userRepository.findByPhone(phoneNumber);
+    if (!existingUser) {
+      throw new NotFoundError('User Not Found');
+    }
+
+    const updatedUser = await this.deps.userRepository.updateProfile(existingUser.id, value);
+
+    return updatedUser;
+  }
+  private ensureWhatsappPrefix(phone: string): string {
+    return phone.startsWith("whatsapp:") ? phone : `whatsapp:${phone}`;
+  }
+
+  toTitleCase(str: string) {
+    return str.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+  }
+}
