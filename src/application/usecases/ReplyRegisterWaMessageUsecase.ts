@@ -1,6 +1,7 @@
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
+import type { MessageGenerator } from "@/domain/Services/MessageGenerator";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
 
 type Deps = {
@@ -8,6 +9,7 @@ type Deps = {
   messageRepository: MessageRepository;
   idGenerator: IdGeneratorService;
   userRepository: UserRepository;
+  messageGenerator: MessageGenerator;
 };
 
 export class ReplyRegisterWaMessageUsecase {
@@ -49,11 +51,7 @@ export class ReplyRegisterWaMessageUsecase {
       name: normalizedName.toLowerCase(),
     });
 
-    let message = "";
-    message += `*Selamat ${this.toTitleCase(user.name)}, nomor telepon kamu telah terdaftar!*\n`;
-    message += `Kamu sekarang dapat menggunakan layanan KA'EL. \n\n`;
-    message += `> Saat ini kamu sedang berinteraksi dengan Bot.`;
-
+    let message = this.deps.messageGenerator.generateOnboardingMessage(user.name);
     const messageSent = await this.deps.whatsappService.sendWhatsApp(phoneNumber, message);
 
     return messageSent;
