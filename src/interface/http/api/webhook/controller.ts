@@ -10,6 +10,7 @@ import type { FormDataEntryValue } from "bun";
 import type { Context } from "hono";
 import { Buffer } from "node:buffer";
 import { createHmac, timingSafeEqual } from "node:crypto";
+import type { ReplyEventWaMessageUsecase } from "@/application/usecases/ReceiveEventWaMessageUsecase";
 
 type Deps = {
   receiveWaMessageUsecase: ReceiveWaMessageUsecase;
@@ -18,6 +19,7 @@ type Deps = {
   replyKaelWaMessageUsecase: ReplyKaelWaMessageUsecase;
   replyRegisterWaMessageUsecase: ReplyRegisterWaMessageUsecase;
   replyProfileWaMessageUsecase: ReplyProfileWaMessageUsecase;
+  replyEventWaMessageUsecase: ReplyEventWaMessageUsecase;
 };
 
 export class WebhookController {
@@ -52,7 +54,8 @@ export class WebhookController {
         await this.deps.replyProfileWaMessageUsecase.execute(message.from, message.value);
         break;
       default:
-        await this.deps.replyGeneralWaMessageUsecase.execute(payload.from, message.text);
+        // await this.deps.replyGeneralWaMessageUsecase.execute(payload.from, message.text);
+        await this.deps.replyEventWaMessageUsecase.execute(payload.from, message.text);
         break;
     }
     return c.text("OK");

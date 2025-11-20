@@ -29,6 +29,9 @@ import { ReplyKaelWaMessageUsecase } from "@/application/usecases/ReplyKaelWaMes
 import { ReplyRegisterWaMessageUsecase } from "@/application/usecases/ReplyRegisterWaMessageUsecase";
 import { GeminiAIService } from "./ai/gemini/GeminiAIService";
 import { ReplyProfileWaMessageUsecase } from "@/application/usecases/ReplyProfileWaMessageUsecase";
+import { ReplyEventWaMessageUsecase } from "@/application/usecases/ReceiveEventWaMessageUsecase";
+import { PrismaEventRepository } from "./persistence/prisma/EventRepository";
+import type { EventRepository } from "@/domain/repositories/EventRepository";
 
 export interface Cradle {
   prisma: PrismaClient;
@@ -47,6 +50,8 @@ export interface Cradle {
   replyKaelWaMessageUsecase: ReplyKaelWaMessageUsecase;
   replyRegisterWaMessageUsecase: ReplyRegisterWaMessageUsecase;
   replyProfileWaMessageUsecase: ReplyProfileWaMessageUsecase;
+  replyEventWaMessageUsecase: ReplyEventWaMessageUsecase;
+  eventRepository: EventRepository;
 }
 
 const container: AwilixContainer<Cradle> = createContainer<Cradle>({
@@ -80,6 +85,7 @@ container.register({
   tx: asFunction(({ prisma: db }) => new PrismaTransactionManager(db)).singleton(),
   userRepository: asFunction(({ prisma: db }) => new PrismaUserRepository(db)).singleton(),
   messageRepository: asFunction(({ prisma: db }) => new PrismaMessageRepository(db)).singleton(),
+  eventRepository: asFunction(({ prisma: db }) => new PrismaEventRepository(db)).singleton(),
 
   // Usecase
   replyGeneralWaMessageUsecase: asClass(ReplyGeneralWaMessageUsecase).singleton(),
@@ -88,6 +94,7 @@ container.register({
   replyKaelWaMessageUsecase: asClass(ReplyKaelWaMessageUsecase).singleton(),
   replyRegisterWaMessageUsecase: asClass(ReplyRegisterWaMessageUsecase).singleton(),
   replyProfileWaMessageUsecase: asClass(ReplyProfileWaMessageUsecase).singleton(),
+  replyEventWaMessageUsecase: asClass(ReplyEventWaMessageUsecase).singleton(),
 });
 
 export default container;

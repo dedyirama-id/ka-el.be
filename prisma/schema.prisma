@@ -45,3 +45,45 @@ model Message {
 
   @@map("messages")
 }
+
+model Event {
+  id             Int        @id @default(autoincrement())
+  title          String
+  slug           String     @unique
+  description    String?
+  organizer      String
+  startDate      DateTime
+  endDate        DateTime
+  url            String?
+  priceMin       Decimal
+  priceMax       Decimal
+  hasCertificate Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  raw            String?
+  tags           EventTag[]
+
+  @@unique([slug, organizer])
+  @@map("events")
+}
+
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String
+  slug String @unique
+
+  events EventTag[]
+
+  @@map("tags")
+}
+
+model EventTag {
+  eventId Int
+  tagId   Int
+
+  event Event @relation(fields: [eventId], references: [id])
+  tag   Tag   @relation(fields: [tagId], references: [id])
+
+  @@id([eventId, tagId])
+  @@map("event_tags")
+}
