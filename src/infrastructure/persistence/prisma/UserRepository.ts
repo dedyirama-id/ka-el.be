@@ -80,4 +80,22 @@ export class PrismaUserRepository implements UserRepository {
       updatedAt: created.updatedAt,
     });
   }
+
+  async findByTags(tagNames: string[]): Promise<User[]> {
+    const users = await this.db.user.findMany({
+      where: {
+        tags: {
+          some: {
+            tag: {
+              name: {
+                in: tagNames,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return users.map(toDomainUser);
+  }
 }

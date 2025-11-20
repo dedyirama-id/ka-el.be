@@ -46,6 +46,23 @@ export class ReplyEventWaMessageUsecase {
       const message = this.deps.messageGenerator.generateNewEventMessage(event);
       messageSent = await this.deps.whatsappService.sendWhatsApp(phoneNumber, message);
     }
+
+    const relatedUsers = await this.deps.userRepository.findByTags(
+      parsedEvent.tags.map((tag) => tag.name),
+    );
+    console.log(parsedEvent.tags.map((tag) => tag.name));
+
+    for (const relatedUser of relatedUsers) {
+      if (relatedUser.phoneE164 === phoneNumber) continue;
+
+      const message = this.deps.messageGenerator.generateNewEventNotificationMessage(event);
+      await this.deps.whatsappService.sendWhatsApp(
+        relatedUser.phoneE164,
+        `👋🏻 Hi, ${relatedUser.name}! Ada event baru nih...`,
+      );
+      await this.deps.whatsappService.sendWhatsApp(relatedUser.phoneE164, message);
+    }
+
     return messageSent;
   }
 

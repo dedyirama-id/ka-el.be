@@ -19,4 +19,17 @@ export class WaMessageGenerator implements MessageGenerator {
       .join("\n")
       .trim();
   }
+
+  generateNewEventNotificationMessage(event: Event): string {
+    return [
+      `*${event.title} by ${event.organizer}*`,
+      `${event.description}`,
+      `💵 ${event.priceMax - event.priceMin == 0 ? "Free" : `Rp${event.priceMin} - Rp${event.priceMax}`}`,
+      `📅 ${event.startDate.toDateString()} - ${event.endDate.toDateString()}`,
+      `🔗 ${event.url ?? "N/A"}`,
+      `${event.tags.map((tag) => `\`${tag.name}\``).join(", ")}`,
+    ]
+      .join("\n")
+      .trim();
+  }
 }
