@@ -4,8 +4,9 @@ import type { MessageGenerator } from "@/domain/Services/MessageGenerator";
 export class WaMessageGenerator implements MessageGenerator {
   generateNewEventMessage(event: Event): string {
     return [
-      `*New Event Created!*`,
-      `+--------------------------------------------------+`,
+      `+---------------------------------------------------+`,
+      `                *New Event Created!*                `,
+      `+---------------------------------------------------+`,
       `*Title:* ${event.title}`,
       `*Description:* ${event.description}`,
       `*Organizer:* ${event.organizer}`,
@@ -31,5 +32,14 @@ export class WaMessageGenerator implements MessageGenerator {
     ]
       .join("\n")
       .trim();
+  }
+
+  generateOnboardingMessage(name: string): string {
+    return [
+      `*Selamat datang ${name}!*`,
+      `Kamu sekarang dapat menggunakan layanan KA'EL. \n`,
+      `> 📌 Pastikan kamu memperbarui profile agar Ka'el dapat memberikan rekomendasi lomba yang sesuai dengan minatmu!`,
+      `> Kirimkan pesan \`@profile <deskripsi diri>\``,
+    ].join("\n");
   }
 }
