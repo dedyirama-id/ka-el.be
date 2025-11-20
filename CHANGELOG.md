@@ -1,3 +1,15 @@
+# [1.8.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.7.0...v1.8.0) (2025-11-20)
+
+
+### Bug Fixes
+
+* add event preview response when receive new event info ([046fe03](https://github.com/dedyirama-id/ka-el.be/commit/046fe03defb7b4bd4fa7494370f1ed5c9556102f))
+
+
+### Features
+
+* implements tags on user table ([87be76b](https://github.com/dedyirama-id/ka-el.be/commit/87be76b0e5be3f99f68e5acbfc55212172beb4bb))
+
 # [1.7.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.6.1...v1.7.0) (2025-11-20)
 
 
