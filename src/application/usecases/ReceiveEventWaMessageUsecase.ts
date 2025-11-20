@@ -50,7 +50,6 @@ export class ReplyEventWaMessageUsecase {
     const relatedUsers = await this.deps.userRepository.findByTags(
       parsedEvent.tags.map((tag) => tag.name),
     );
-    console.log(parsedEvent.tags.map((tag) => tag.name));
 
     for (const relatedUser of relatedUsers) {
       if (relatedUser.phoneE164 === phoneNumber) continue;
