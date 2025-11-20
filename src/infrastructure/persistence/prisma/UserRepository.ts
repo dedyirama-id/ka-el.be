@@ -1,5 +1,5 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
-import type { User } from "@/domain/entities/User";
+import { User } from "@/domain/entities/User";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
 import { toDomainUser } from "@/infrastructure/mapper/user-mapper";
 
@@ -33,5 +33,51 @@ export class PrismaUserRepository implements UserRepository {
     });
 
     return toDomainUser(row);
+  }
+
+  async save(user: User): Promise<User> {
+    const props = user.toProps();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, createdAt, updatedAt, tags, ...rest } = props;
+
+    if (user.isPersisted) {
+      const updated = await this.db.user.update({
+        where: { id: id! },
+        data: {
+          ...rest,
+          tags: {
+            createMany: {
+              data: tags.map((tag) => ({ tagId: tag.id! })),
+              skipDuplicates: true,
+            },
+          },
+        },
+      });
+
+      return User.fromPersistence({
+        ...props,
+        createdAt: updated.createdAt,
+        updatedAt: updated.updatedAt,
+      });
+    }
+
+    const created = await this.db.user.create({
+      data: {
+        ...rest,
+        tags: {
+          createMany: {
+            data: tags.map((tag) => ({ tagId: tag.id! })),
+            skipDuplicates: true,
+          },
+        },
+      },
+    });
+
+    return User.fromPersistence({
+      ...props,
+      id: created.id,
+      createdAt: created.createdAt,
+      updatedAt: created.updatedAt,
+    });
   }
 }

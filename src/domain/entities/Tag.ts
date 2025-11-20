@@ -12,10 +12,11 @@ export class Tag {
   }
 
   static createNew(name: string): Tag {
+    const cleanedName = name.trim().toLowerCase();
     const slug = this.prototype.slugify(name);
     return new Tag({
       id: undefined,
-      name,
+      name: cleanedName,
       slug,
     });
   }

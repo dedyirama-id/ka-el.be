@@ -27,6 +27,7 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   profile   String?
+  tags      UserTag[]
   messages  Message[]
 
   @@map("users")
@@ -73,6 +74,7 @@ model Tag {
   slug String @unique
 
   events EventTag[]
+  users  UserTag[]
 
   @@map("tags")
 }
@@ -86,4 +88,15 @@ model EventTag {
 
   @@id([eventId, tagId])
   @@map("event_tags")
+}
+
+model UserTag {
+  userId String
+  tagId  Int
+
+  user User @relation(fields: [userId], references: [id])
+  tag  Tag  @relation(fields: [tagId], references: [id])
+
+  @@id([userId, tagId])
+  @@map("user_tags")
 }

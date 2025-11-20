@@ -85,6 +85,9 @@ export class Event {
   get organizer() {
     return this.props.organizer;
   }
+  get url() {
+    return this.props.url;
+  }
   get startDate() {
     return this.props.startDate;
   }
