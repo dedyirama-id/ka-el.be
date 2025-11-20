@@ -1,3 +1,18 @@
+# [1.7.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.6.1...v1.7.0) (2025-11-20)
+
+
+### Bug Fixes
+
+* limit ai to only response related message ([e9c6037](https://github.com/dedyirama-id/ka-el.be/commit/e9c603710816fca41700f4bd50b22c9055b3084d))
+
+
+### Features
+
+* implements AI Based intent parser ([595fc7e](https://github.com/dedyirama-id/ka-el.be/commit/595fc7ee2a7eed9bdad2d9c7bf0658ef91d4f1c1))
+* implements receive event info ([36f2d6b](https://github.com/dedyirama-id/ka-el.be/commit/36f2d6bae3b53f895e6ead3b6ec79d7500c531e8))
+* implements receive event info ([24b3e4d](https://github.com/dedyirama-id/ka-el.be/commit/24b3e4d4a435c651d939ecebd16d3a017ec46dbb))
+* implements tags on event entity ([8611a07](https://github.com/dedyirama-id/ka-el.be/commit/8611a07624f58c9d3b9c5941a8be4d8afda35435))
+
 ## [1.6.1](https://github.com/dedyirama-id/ka-el.be/compare/v1.6.0...v1.6.1) (2025-11-14)
 
 
