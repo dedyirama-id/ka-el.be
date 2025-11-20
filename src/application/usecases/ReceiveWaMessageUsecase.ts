@@ -1,12 +1,14 @@
 import { MessageReceived } from "@/domain/entities/MessageReceived";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
+import type { AIService } from "@/domain/Services/AIService";
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 
 type Deps = {
   idGenerator: IdGeneratorService;
   messageRepository: MessageRepository;
   userRepository: UserRepository;
+  aiService: AIService;
 };
 
 type Input = {
@@ -33,9 +35,13 @@ export class ReceiveWaMessageUsecase {
     }
 
     const tokens = input.body.trim().split(/\s+/);
-    const intent = tokens.at(0)?.toLowerCase() ?? "";
-    const value = tokens.slice(1).join(" ").trim();
+    if (tokens[0]?.includes("@")) {
+      const intent = tokens.at(0)?.toLowerCase() ?? "";
+      const value = tokens.slice(1).join(" ").trim();
+      return new MessageReceived(id, phone, intent, value, input.body);
+    }
 
-    return new MessageReceived(id, phone, intent, value, input.body);
+    const intent = await this.deps.aiService.parseIntent(input.body);
+    return new MessageReceived(id, phone, intent.token, intent.value, input.body);
   }
 }

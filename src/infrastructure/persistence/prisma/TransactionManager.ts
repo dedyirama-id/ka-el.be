@@ -2,6 +2,8 @@ import type { PrismaClient } from "@prisma/client";
 import type { TransactionManager, UnitOfWork } from "@/application/ports/TransactionManager";
 import { PrismaMessageRepository } from "./MessageRepository";
 import { PrismaUserRepository } from "./UserRepository";
+import { PrismaEventRepository } from "./EventRepository";
+import { PrismaTagRepository } from "./TagRepository";
 
 export class PrismaTransactionManager implements TransactionManager {
   constructor(private readonly prisma: PrismaClient) {}
@@ -10,7 +12,9 @@ export class PrismaTransactionManager implements TransactionManager {
     return this.prisma.$transaction(async (tx) => {
       const users = new PrismaUserRepository(tx);
       const messages = new PrismaMessageRepository(tx);
-      return work({ users, messages });
+      const events = new PrismaEventRepository(tx);
+      const tags = new PrismaTagRepository(tx);
+      return work({ users, messages, events, tags });
     });
   }
 }
