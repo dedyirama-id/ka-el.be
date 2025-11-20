@@ -7,7 +7,16 @@ const globals = require("globals");
 
 module.exports = [
   {
-    ignores: ["dist", "node_modules", "coverage", ".data", ".github", ".husky", "infra"],
+    ignores: [
+      "dist",
+      "node_modules",
+      "coverage",
+      ".data",
+      ".github",
+      ".husky",
+      "infra",
+      "src/generated",
+    ],
   },
   {
     files: ["**/*.ts"],

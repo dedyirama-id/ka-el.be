@@ -5,7 +5,7 @@ import { Event } from "@/domain/entities/Event";
 type PrismaTx = PrismaClient | Prisma.TransactionClient;
 
 export class PrismaEventRepository implements EventRepository {
-  constructor(private readonly db: PrismaTx) { }
+  constructor(private readonly db: PrismaTx) {}
 
   async save(event: Event): Promise<Event> {
     const props = event.toProps();
