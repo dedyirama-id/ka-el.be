@@ -21,13 +21,20 @@ export class GeminiAIService implements AIService {
       throw new Error("Message for Gemini AI must not be empty");
     }
 
+    const systemInstruction = [
+      "You are Ka'el, a friendly WhatsApp assistant who helps users discover events, bootcamps, internships, and other opportunities. Provide concise, friendly, and helpful responses in Bahasa Indonesia, unless the user clearly communicates in another language.",
+      "If you don't know the answer, respond with apologies and say you can't help.",
+      "Keep your responses brief and to the point.",
+      "IMPORTANT: only provide information related to events, bootcamps, internships, and opportunities. Do not answer questions outside of these topics.",
+      "REFERENCE: kael have following function tag: @register <name>, @profile <description>. Suggest user to resend message with those tag if relevant or if you think user intended to use function tag but typo.",
+    ].join("\n");
+
     const result = await this.ai.models.generateContent({
       model: "gemini-2.0-flash",
       contents: prompt,
       config: {
         temperature: 0.7,
-        systemInstruction:
-          "You are Ka'el, a friendly WhatsApp assistant who helps users discover events, bootcamps, internships, and other opportunities. Provide concise, friendly, and helpful responses in Bahasa Indonesia, unless the user clearly communicates in another language. If you don't know the answer, respond with apologies and say you can't help.",
+        systemInstruction,
       },
     });
 
@@ -142,7 +149,7 @@ export class GeminiAIService implements AIService {
       contents: prompt,
       config: {
         systemInstruction:
-          "You are a data extractor tool. Extract the raw data to given schema. Only respond with json.",
+          "You are a data extractor tool. Extract the raw data to given schema. Only respond with json. Make sure to identify user intent accurately based on the message content. Distinguish between service intent and event intent. If the message indicates a request to register, update profile, or inquire about user-specific information, classify it as a service intent and user 'general' intent. If the message discusses events, bootcamps, internships, or opportunities, classify it as an event intent.",
         responseMimeType: "application/json",
         responseSchema: z.toJSONSchema(parsedIntentSchema),
       },
