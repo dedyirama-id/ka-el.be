@@ -1,3 +1,5 @@
+import { Tag } from "./Tag";
+
 export interface EventProps {
   id: number | undefined;
   title: string;
@@ -12,10 +14,13 @@ export interface EventProps {
   hasCertificate: boolean;
   createdAt: Date;
   updatedAt: Date;
+  tags: Tag[];
   raw: string | null;
 }
 
-export type NewEventParams = Omit<EventProps, "id" | "createdAt" | "updatedAt">;
+export type NewEventParams = Omit<EventProps, "id" | "createdAt" | "updatedAt" | "tags"> & {
+  tags: string[];
+};
 
 export class Event {
   private props: EventProps;
@@ -36,6 +41,7 @@ export class Event {
 
   static createNew(params: NewEventParams): Event {
     const now = new Date();
+    const tags = params.tags.map((name) => Tag.createNew(name));
 
     return new Event({
       id: undefined,
@@ -51,6 +57,7 @@ export class Event {
       hasCertificate: params.hasCertificate ?? false,
       createdAt: now,
       updatedAt: now,
+      tags: tags,
       raw: params.raw ?? null,
     });
   }
@@ -98,6 +105,16 @@ export class Event {
   }
   get updatedAt() {
     return this.props.updatedAt;
+  }
+  get tags() {
+    return this.props.tags;
+  }
+  get raw() {
+    return this.props.raw;
+  }
+
+  setTags(tags: Tag[]) {
+    this.props.tags = tags;
   }
 
   toProps(): EventProps {

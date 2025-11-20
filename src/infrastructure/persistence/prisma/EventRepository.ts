@@ -10,12 +10,20 @@ export class PrismaEventRepository implements EventRepository {
   async save(event: Event): Promise<Event> {
     const props = event.toProps();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, createdAt, updatedAt, ...rest } = props;
+    const { id, createdAt, updatedAt, tags, ...rest } = props;
 
     if (event.isPersisted) {
       const updated = await this.db.event.update({
         where: { id: id! },
-        data: { ...rest },
+        data: {
+          ...rest,
+          tags: {
+            createMany: {
+              data: tags.map((tag) => ({ tagId: tag.id! })),
+              skipDuplicates: true,
+            },
+          },
+        },
       });
 
       return Event.fromPersistence({
@@ -26,7 +34,15 @@ export class PrismaEventRepository implements EventRepository {
     }
 
     const created = await this.db.event.create({
-      data: { ...rest },
+      data: {
+        ...rest,
+        tags: {
+          createMany: {
+            data: tags.map((tag) => ({ tagId: tag.id! })),
+            skipDuplicates: true,
+          },
+        },
+      },
     });
 
     return Event.fromPersistence({

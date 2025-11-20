@@ -79,6 +79,7 @@ export class GeminiAIService implements AIService {
     });
 
     const parsed = parsedEventSchema.parse(JSON.parse(result.text as string));
+    console.log("🚀 ~ GeminiAIService ~ parseEvent ~ parsed:", parsed);
     return this.toDomainEvent(parsed);
   }
 
@@ -100,6 +101,7 @@ export class GeminiAIService implements AIService {
       priceMax: parsed.priceMax,
       hasCertificate: parsed.hasCertificate ?? false,
       raw: parsed.raw ?? null,
+      tags: parsed.tags ?? [],
     });
   }
 

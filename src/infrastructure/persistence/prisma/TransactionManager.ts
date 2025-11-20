@@ -3,6 +3,7 @@ import type { TransactionManager, UnitOfWork } from "@/application/ports/Transac
 import { PrismaMessageRepository } from "./MessageRepository";
 import { PrismaUserRepository } from "./UserRepository";
 import { PrismaEventRepository } from "./EventRepository";
+import { PrismaTagRepository } from "./TagRepository";
 
 export class PrismaTransactionManager implements TransactionManager {
   constructor(private readonly prisma: PrismaClient) {}
@@ -12,7 +13,8 @@ export class PrismaTransactionManager implements TransactionManager {
       const users = new PrismaUserRepository(tx);
       const messages = new PrismaMessageRepository(tx);
       const events = new PrismaEventRepository(tx);
-      return work({ users, messages, events });
+      const tags = new PrismaTagRepository(tx);
+      return work({ users, messages, events, tags });
     });
   }
 }

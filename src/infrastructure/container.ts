@@ -32,6 +32,8 @@ import { ReplyProfileWaMessageUsecase } from "@/application/usecases/ReplyProfil
 import { ReplyEventWaMessageUsecase } from "@/application/usecases/ReceiveEventWaMessageUsecase";
 import { PrismaEventRepository } from "./persistence/prisma/EventRepository";
 import type { EventRepository } from "@/domain/repositories/EventRepository";
+import { PrismaTagRepository } from "./persistence/prisma/TagRepository";
+import type { TagRepository } from "@/domain/repositories/TagRepository";
 
 export interface Cradle {
   prisma: PrismaClient;
@@ -52,6 +54,7 @@ export interface Cradle {
   replyProfileWaMessageUsecase: ReplyProfileWaMessageUsecase;
   replyEventWaMessageUsecase: ReplyEventWaMessageUsecase;
   eventRepository: EventRepository;
+  tagRepository: TagRepository;
 }
 
 const container: AwilixContainer<Cradle> = createContainer<Cradle>({
@@ -86,6 +89,7 @@ container.register({
   userRepository: asFunction(({ prisma: db }) => new PrismaUserRepository(db)).singleton(),
   messageRepository: asFunction(({ prisma: db }) => new PrismaMessageRepository(db)).singleton(),
   eventRepository: asFunction(({ prisma: db }) => new PrismaEventRepository(db)).singleton(),
+  tagRepository: asFunction(({ prisma: db }) => new PrismaTagRepository(db)).singleton(),
 
   // Usecase
   replyGeneralWaMessageUsecase: asClass(ReplyGeneralWaMessageUsecase).singleton(),

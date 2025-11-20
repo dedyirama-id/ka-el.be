@@ -63,7 +63,8 @@ export const parsedEventSchema = z
       .optional()
       .describe("Indicates whether the event provides a certificate of participation."),
 
-    raw: z.string().nullable().optional().describe("The raw information before event being parsed"),
+    raw: z.string().describe("The raw information before event being parsed"),
+    tags: z.array(z.string()).describe("Tags or keywordsof the event."),
   })
   .describe("Schema for structured event data extracted by Ka'el from user-submitted messages.");
 
