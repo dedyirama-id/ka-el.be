@@ -53,9 +53,11 @@ export class WebhookController {
       case "@profile":
         await this.deps.replyProfileWaMessageUsecase.execute(message.from, message.value);
         break;
-      default:
-        // await this.deps.replyGeneralWaMessageUsecase.execute(payload.from, message.text);
+      case "add_event":
         await this.deps.replyEventWaMessageUsecase.execute(payload.from, message.text);
+        break;
+      default:
+        await this.deps.replyGeneralWaMessageUsecase.execute(payload.from, message.text);
         break;
     }
     return c.text("OK");

@@ -5,6 +5,8 @@ import { GoogleGenAI } from "@google/genai";
 import { parsedEventSchema, type ParsedEventDto } from "../ParsedEventSchema";
 import { InvariantError } from "@/commons/exceptions/InvariantError";
 import z from "zod";
+import { Intent } from "@/domain/entities/Intent";
+import { parsedIntentSchema } from "../ParsedIntent";
 
 export class GeminiAIService implements AIService {
   private readonly ai;
@@ -25,7 +27,7 @@ export class GeminiAIService implements AIService {
       config: {
         temperature: 0.7,
         systemInstruction:
-          "You are Ka'el, a friendly WhatsApp assistant who helps users discover events, bootcamps, internships, and other opportunities. Provide concise, friendly, and helpful responses in Bahasa Indonesia, unless the user clearly communicates in another language.",
+          "You are Ka'el, a friendly WhatsApp assistant who helps users discover events, bootcamps, internships, and other opportunities. Provide concise, friendly, and helpful responses in Bahasa Indonesia, unless the user clearly communicates in another language. If you don't know the answer, respond with apologies and say you can't help.",
       },
     });
 
@@ -79,7 +81,6 @@ export class GeminiAIService implements AIService {
     });
 
     const parsed = parsedEventSchema.parse(JSON.parse(result.text as string));
-    console.log("🚀 ~ GeminiAIService ~ parseEvent ~ parsed:", parsed);
     return this.toDomainEvent(parsed);
   }
 
@@ -128,5 +129,27 @@ export class GeminiAIService implements AIService {
       .replace(/^-+|-+$/g, "");
 
     return slug || `event-${Date.now()}`;
+  }
+
+  async parseIntent(message: string): Promise<Intent> {
+    const prompt = message.trim();
+    if (!prompt) {
+      throw new Error("Message for Gemini AI must not be empty");
+    }
+
+    const result = await this.ai.models.generateContent({
+      model: "gemini-2.0-flash-001",
+      contents: prompt,
+      config: {
+        systemInstruction:
+          "You are a data extractor tool. Extract the raw data to given schema. Only respond with json.",
+        responseMimeType: "application/json",
+        responseSchema: z.toJSONSchema(parsedIntentSchema),
+      },
+    });
+
+    const parsed = parsedIntentSchema.parse(JSON.parse(result.text as string));
+    console.log("🚀 ~ GeminiAIService ~ parseIntent ~ parsed:", parsed);
+    return new Intent(parsed);
   }
 }
