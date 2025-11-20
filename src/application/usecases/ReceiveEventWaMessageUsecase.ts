@@ -31,9 +31,9 @@ export class ReplyEventWaMessageUsecase {
           !existingTags.some((existingTag) => existingTag.name.toLowerCase() === tagName),
       )
       .map((tagName) => Tag.createNew(tagName));
-    const newTags = this.deps.tagRepository.saveMany(newTagNames);
+    const newTags = await this.deps.tagRepository.saveMany(newTagNames);
 
-    parsedEvent.setTags([...existingTags, ...(await newTags)]);
+    parsedEvent.setTags([...existingTags, ...newTags]);
     const event = await this.deps.eventRepository.save(parsedEvent);
 
     let message = [

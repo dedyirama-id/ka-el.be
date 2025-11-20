@@ -6,4 +6,5 @@ export interface AIService {
   proofreadingMessage(message: string): Promise<string>;
   parseEvent(message: string): Promise<Event>;
   parseIntent(message: string): Promise<Intent>;
+  parseTags(message: string): Promise<string[]>;
 }
