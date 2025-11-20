@@ -1,3 +1,16 @@
+# [1.9.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.8.0...v1.9.0) (2025-11-20)
+
+
+### Bug Fixes
+
+* add reminder to fill profile when user registration succeded ([4de7e96](https://github.com/dedyirama-id/ka-el.be/commit/4de7e964e9817901ac068c924160171e9e9df03b))
+* remove unnecessary log ([13c0835](https://github.com/dedyirama-id/ka-el.be/commit/13c08351b09064254eb1052d470a7c571b73f140))
+
+
+### Features
+
+* implement new event notification feature ([a466938](https://github.com/dedyirama-id/ka-el.be/commit/a4669381734aea58bf6c0f7b5f3c8194ce695d0f))
+
 # [1.8.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.7.0...v1.8.0) (2025-11-20)
 
 
