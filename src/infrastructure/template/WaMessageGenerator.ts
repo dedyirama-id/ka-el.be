@@ -4,9 +4,7 @@ import type { MessageGenerator } from "@/domain/Services/MessageGenerator";
 export class WaMessageGenerator implements MessageGenerator {
   generateNewEventMessage(event: Event): string {
     return [
-      `+---------------------------------------------------+`,
-      `                *New Event Created!*                `,
-      `+---------------------------------------------------+`,
+      `> ✅ New Event Created!`,
       `*Title:* ${event.title}`,
       `*Description:* ${event.description}`,
       `*Organizer:* ${event.organizer}`,
