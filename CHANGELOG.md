@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.9.0...v1.10.0) (2025-11-21)
+
+
+### Features
+
+* implements search event feature ([06c7b01](https://github.com/dedyirama-id/ka-el.be/commit/06c7b01365c1227c16ae66dbcf56203eef5d8d4b))
+
 # [1.9.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.8.0...v1.9.0) (2025-11-20)
 
 
