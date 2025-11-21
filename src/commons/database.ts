@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { logger } from "./logger";
 
+const prismaLogger = logger.child({ service: "Prisma" });
+
 export const prisma = new PrismaClient({
   log: [
     {
@@ -23,17 +25,31 @@ export const prisma = new PrismaClient({
 });
 
 prisma.$on("query", (e) => {
-  logger.info(e);
+  prismaLogger.debug("Prisma query", {
+    query: e.query,
+    params: e.params,
+    durationMs: e.duration,
+    target: e.target,
+  });
 });
 
 prisma.$on("error", (e) => {
-  logger.error(e);
+  prismaLogger.error("Prisma error", {
+    message: e.message,
+    target: e.target,
+  });
 });
 
 prisma.$on("info", (e) => {
-  logger.info(e);
+  prismaLogger.info("Prisma info", {
+    message: e.message,
+    target: e.target,
+  });
 });
 
 prisma.$on("warn", (e) => {
-  logger.warn(e);
+  prismaLogger.warn("Prisma warn", {
+    message: e.message,
+    target: e.target,
+  });
 });
