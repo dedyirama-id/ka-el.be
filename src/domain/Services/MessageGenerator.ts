@@ -4,4 +4,5 @@ export interface MessageGenerator {
   generateNewEventMessage(event: Event): string;
   generateNewEventNotificationMessage(event: Event): string;
   generateOnboardingMessage(name: string): string;
+  generateEventMessage(event: Event): string;
 }
