@@ -1,6 +1,7 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import type { EventRepository } from "@/domain/repositories/EventRepository";
 import { Event } from "@/domain/entities/Event";
+import { Tag } from "@/domain/entities/Tag";
 
 type PrismaTx = PrismaClient | Prisma.TransactionClient;
 
@@ -51,5 +52,41 @@ export class PrismaEventRepository implements EventRepository {
       createdAt: created.createdAt,
       updatedAt: created.updatedAt,
     });
+  }
+
+  async search(keywords: string[]): Promise<Event[]> {
+    const events = await this.db.event.findMany({
+      where: {
+        OR: keywords.flatMap((keyword) => [
+          { title: { contains: keyword, mode: "insensitive" } },
+          { description: { contains: keyword, mode: "insensitive" } },
+          { organizer: { contains: keyword, mode: "insensitive" } },
+          {
+            tags: {
+              some: {
+                tag: {
+                  name: { contains: keyword, mode: "insensitive" },
+                },
+              },
+            },
+          },
+        ]),
+      },
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+      take: 5,
+    });
+
+    return events.map((event) =>
+      Event.fromPersistence({
+        ...event,
+        tags: event.tags.map((et) => Tag.fromPersistence(et.tag)),
+      }),
+    );
   }
 }

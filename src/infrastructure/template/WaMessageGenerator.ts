@@ -42,4 +42,18 @@ export class WaMessageGenerator implements MessageGenerator {
       `> Kirimkan pesan \`@profile <deskripsi diri>\``,
     ].join("\n");
   }
+
+  generateEventMessage(event: Event): string {
+    return [
+      `> Id: ${event.id}*`,
+      `*${event.title}*`,
+      `${event.description}`,
+      `💵 ${event.priceMax - event.priceMin == 0 ? "Free" : `Rp${event.priceMin} - Rp${event.priceMax}`}`,
+      `📅 ${event.startDate.toDateString()} - ${event.endDate.toDateString()}`,
+      `🔗 ${event.url ?? "N/A"}`,
+      `${event.tags.map((tag) => `\`${tag.name}\``).join(", ")}`,
+    ]
+      .join("\n")
+      .trim();
+  }
 }

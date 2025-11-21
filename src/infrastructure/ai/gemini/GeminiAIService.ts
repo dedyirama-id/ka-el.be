@@ -8,6 +8,7 @@ import z from "zod";
 import { Intent } from "@/domain/entities/Intent";
 import { parsedIntentSchema } from "../ParsedIntent";
 import { parsedTagsSchema } from "../ParsedTags";
+import { parsedSearchQueriesSchema } from "../ParsedSearchQueries";
 
 export class GeminiAIService implements AIService {
   private readonly ai;
@@ -179,5 +180,26 @@ export class GeminiAIService implements AIService {
 
     const parsed = parsedTagsSchema.parse(JSON.parse(result.text as string));
     return parsed.tags;
+  }
+
+  async parseSearchQuery(message: string): Promise<string[]> {
+    const prompt = message.trim();
+    if (!prompt) {
+      throw new Error("Message for Gemini AI must not be empty");
+    }
+
+    const result = await this.ai.models.generateContent({
+      model: "gemini-2.0-flash-001",
+      contents: prompt,
+      config: {
+        systemInstruction:
+          "You are a data extractor tool. Extract the raw data to given schema. Only respond with json.",
+        responseMimeType: "application/json",
+        responseSchema: z.toJSONSchema(parsedSearchQueriesSchema),
+      },
+    });
+
+    const parsed = parsedSearchQueriesSchema.parse(JSON.parse(result.text as string));
+    return parsed.queries;
   }
 }

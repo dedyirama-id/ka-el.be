@@ -56,8 +56,8 @@ model Event {
   startDate      DateTime
   endDate        DateTime
   url            String?
-  priceMin       Decimal
-  priceMax       Decimal
+  priceMin       Float
+  priceMax       Float
   hasCertificate Boolean    @default(false)
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt

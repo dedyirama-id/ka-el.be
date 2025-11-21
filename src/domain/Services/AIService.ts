@@ -7,4 +7,5 @@ export interface AIService {
   parseEvent(message: string): Promise<Event>;
   parseIntent(message: string): Promise<Intent>;
   parseTags(message: string): Promise<string[]>;
+  parseSearchQuery(message: string): Promise<string[]>;
 }
