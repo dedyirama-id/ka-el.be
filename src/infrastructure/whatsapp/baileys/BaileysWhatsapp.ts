@@ -1,8 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
-import type { WhatsAppMessenger } from "@/application/ports/WhatsappMessenger";
 import { env } from "@/commons/config/env";
-import { logger as appLogger } from "@/commons/logger";
+import { logger } from "@/commons/logger";
 import type { MessageSent } from "@/domain/entities/MessageSent";
 import makeWASocket, {
   type BaileysEventMap,
@@ -15,6 +14,9 @@ import makeWASocket, {
 import qrcodeTerminal from "qrcode-terminal";
 import type { Logger as WinstonLogger } from "winston";
 import { URL } from "node:url";
+import type { WhatsappService } from "@/domain/Services/WhatsappService";
+import { maskNumber } from "@/commons/utils";
+import type { ChatType } from "@/domain/value-objects/ChatType";
 
 type Deferred = {
   promise: Promise<void>;
@@ -24,12 +26,11 @@ type Deferred = {
 
 type BaileysWhatsappOptions = {
   authDir?: string;
-  logger?: WinstonLogger;
   connectionTimeoutMs?: number;
   qrCallback?: (qr: string) => void;
 };
 
-export class BaileysWhatsapp implements WhatsAppMessenger {
+export class BaileysWhatsapp implements WhatsappService {
   private socket?: WASocket;
   private initTask?: Promise<WASocket>;
   private connectionDeferred?: Deferred;
@@ -45,15 +46,19 @@ export class BaileysWhatsapp implements WhatsAppMessenger {
     if (!socket) return;
 
     for (const msg of event.messages) {
-      const remoteJid = msg.key.remoteJid ?? "";
-      if (!remoteJid || msg.key.fromMe) continue;
-      if (remoteJid === "status@broadcast" || remoteJid.endsWith("@g.us")) continue;
+      const fromJid = msg.key.remoteJid ?? "";
+      if (!fromJid || msg.key.fromMe) continue;
+      if (fromJid === "status@broadcast") continue;
+
+      const toJid = socket.user?.id ?? "";
 
       const text = BaileysWhatsapp.extractText(msg.message);
       if (!text) continue;
 
-      void this.forwardToWebhook(remoteJid, text).catch((err) => {
-        this.logger.error("Failed forwarding WhatsApp message to webhook", err, remoteJid);
+      const participant = msg.key.participantAlt ?? undefined;
+
+      void this.forwardToWebhook(fromJid, toJid, text, participant).catch((err) => {
+        this.logger.error("Failed forwarding WhatsApp message to webhook", fromJid, err);
       });
     }
   };
@@ -66,8 +71,7 @@ export class BaileysWhatsapp implements WhatsAppMessenger {
     this.authDir = isAbsolute(configuredDir) ? configuredDir : join(process.cwd(), configuredDir);
     mkdirSync(this.authDir, { recursive: true });
 
-    const baseLogger = options.logger ?? appLogger.child({ service: "BaileysWhatsapp" });
-    this.logger = baseLogger;
+    this.logger = logger.child({ service: "BaileysWhatsapp" });
     const base = BaileysWhatsapp.ensureAbsoluteUrl(env.BASE_URL);
     this.webhookUrl = new URL("/api/webhook/wa", base).toString();
 
@@ -76,12 +80,19 @@ export class BaileysWhatsapp implements WhatsAppMessenger {
     });
   }
 
-  async sendText(msg: { to: string; body: string }): Promise<MessageSent> {
+  async sendToChat(to: string, text: string, chatType: ChatType): Promise<MessageSent> {
+    if (chatType == "group") {
+      logger.info("Cancel sending message to group");
+      return { id: "", text: "" };
+    }
+
     const socket = await this.ensureReadySocket();
-    const jid = BaileysWhatsapp.toJid(msg.to);
-    const sent = await socket.sendMessage(jid, { text: msg.body });
+    const jid = BaileysWhatsapp.toJid(to);
+    const sent = await socket.sendMessage(jid, { text });
     const message = sent?.message ?? {};
     const key = sent?.key ?? {};
+
+    logger.info("Message sent", { to: maskNumber(to) });
 
     return {
       id: key.id || "",
@@ -270,11 +281,26 @@ export class BaileysWhatsapp implements WhatsAppMessenger {
     return { promise, resolve, reject };
   }
 
-  private async forwardToWebhook(remoteJid: string, text: string) {
-    const from = BaileysWhatsapp.toWhatsappAddress(remoteJid);
+  private async forwardToWebhook(
+    remoteJid: string,
+    toJid: string,
+    text: string,
+    participant?: string,
+  ) {
+    const chatType = remoteJid.endsWith("@g.us") ? "group" : "personal";
+
+    const from = remoteJid.replace(/@.+$/, "");
+    const to = toJid.replace(/@.+$/, "").split(":")[0];
+    const part = participant ? participant.replace(/@.+$/, "") : "";
+
     const body = new URLSearchParams();
-    body.set("From", from);
-    body.set("Body", text);
+    body.set("chatType", chatType);
+    body.set("from", "+" + from);
+    body.set("to", "+" + to);
+    body.set("text", text);
+    if (part) {
+      body.set("participant", "+" + part);
+    }
 
     const response = await fetch(this.webhookUrl, {
       method: "POST",
@@ -332,14 +358,24 @@ export class BaileysWhatsapp implements WhatsAppMessenger {
     return `${digits}@s.whatsapp.net`;
   }
 
-  private static toWhatsappAddress(remoteJid: string): string {
-    const bare = remoteJid.replace(/@.+$/, "");
-    const digits = bare.replace(/\D/g, "");
-    if (!digits) {
-      throw new Error("Baileys WA error: invalid remote JID");
+  private static toGroupJid(input: string): string {
+    const trimmed = input.trim();
+    if (!trimmed) {
+      throw new Error("Baileys WA error: missing recipient");
     }
-    const e164 = bare.startsWith("+") ? bare : `+${digits}`;
-    return `whatsapp:${e164}`;
+
+    if (trimmed.includes("@s.whatsapp.net") || trimmed.includes("@g.us")) {
+      return trimmed;
+    }
+
+    const withoutPrefix = trimmed.replace(/^whatsapp:/i, "");
+    const digits = withoutPrefix.replace(/\D/g, "");
+
+    if (!digits) {
+      throw new Error("Baileys WA error: invalid phone number");
+    }
+
+    return `${digits}@g.us`;
   }
 
   private static ensureAbsoluteUrl(input: string): string {

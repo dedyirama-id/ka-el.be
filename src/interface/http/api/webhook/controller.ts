@@ -4,14 +4,11 @@ import type { ReplyKaelWaMessageUsecase } from "@/application/usecases/ReplyKael
 import type { ReplyPingWaMessageUsecase } from "@/application/usecases/ReplyPingWaMessageUsecase";
 import type { ReplyRegisterWaMessageUsecase } from "@/application/usecases/ReplyRegisterWaMessageUsecase";
 import type { ReplyProfileWaMessageUsecase } from "@/application/usecases/ReplyProfileWaMessageUsecase";
-import { env } from "@/commons/config/env";
 import { ReceiveWaSchema } from "@/interface/validators/ReceiveWaSchema";
-import type { FormDataEntryValue } from "bun";
 import type { Context } from "hono";
-import { Buffer } from "node:buffer";
-import { createHmac, timingSafeEqual } from "node:crypto";
 import type { ReplyEventWaMessageUsecase } from "@/application/usecases/ReceiveEventWaMessageUsecase";
 import type { ReplySearchEventWaMessageUsecase } from "@/application/usecases/ReplySearchEventWaMessageUsecase";
+import { WaMessage } from "@/domain/entities/WaMessage";
 
 type Deps = {
   receiveWaMessageUsecase: ReceiveWaMessageUsecase;
@@ -30,73 +27,34 @@ export class WebhookController {
   }
 
   async receiveWaMessage(c: Context) {
-    const formBody = await c.req.parseBody();
-    if (env.WHATSAPP_PROVIDER === "twilio") {
-      const isValid = this.verifyTwilioSignature(c, formBody);
-      if (!isValid) {
-        return c.text("Invalid Twilio signature", 403);
-      }
-    }
+    const body = await c.req.parseBody();
 
-    const payload = ReceiveWaSchema.parse({ from: formBody.From, body: formBody.Body });
-
-    const message = await this.deps.receiveWaMessageUsecase.execute(payload);
+    const payload = ReceiveWaSchema.parse(body);
+    const message = await this.deps.receiveWaMessageUsecase.execute(new WaMessage(payload));
 
     switch (message.intent) {
       case "@ping":
-        await this.deps.replyPingWaMessageUsecase.execute(payload.from);
+        await this.deps.replyPingWaMessageUsecase.execute(message);
         break;
       case "@kael":
-        await this.deps.replyKaelWaMessageUsecase.execute(payload.from);
+        await this.deps.replyKaelWaMessageUsecase.execute(message);
         break;
       case "@register":
-        await this.deps.replyRegisterWaMessageUsecase.execute(message.from, message.value);
+        await this.deps.replyRegisterWaMessageUsecase.execute(message);
         break;
       case "@profile":
-        await this.deps.replyProfileWaMessageUsecase.execute(message.from, message.value);
+        await this.deps.replyProfileWaMessageUsecase.execute(message);
         break;
       case "add_event":
-        await this.deps.replyEventWaMessageUsecase.execute(payload.from, message.text);
+        await this.deps.replyEventWaMessageUsecase.execute(message);
         break;
       case "search_event":
-        await this.deps.replySearchEventWaMessageUsecase.execute(payload.from, message.text);
+        await this.deps.replySearchEventWaMessageUsecase.execute(message);
         break;
       default:
-        await this.deps.replyGeneralWaMessageUsecase.execute(payload.from, message.text);
+        await this.deps.replyGeneralWaMessageUsecase.execute(message);
         break;
     }
     return c.text("OK");
-  }
-
-  private verifyTwilioSignature(c: Context, params: Record<string, FormDataEntryValue>): boolean {
-    const signature = c.req.header("x-twilio-signature");
-    if (!signature || !env.TWILIO_AUTH_TOKEN) {
-      return false;
-    }
-
-    const expected = this.buildTwilioSignature(c, params);
-
-    try {
-      const providedBuf = Buffer.from(signature, "base64");
-      const expectedBuf = Buffer.from(expected, "base64");
-      return providedBuf.length === expectedBuf.length && timingSafeEqual(providedBuf, expectedBuf);
-    } catch {
-      return false;
-    }
-  }
-
-  private buildTwilioSignature(c: Context, params: Record<string, FormDataEntryValue>): string {
-    const url = new URL(c.req.url);
-    let payload = url.toString();
-
-    const keys = Object.keys(params).sort();
-    for (const key of keys) {
-      const value = params[key];
-      if (typeof value === "string") {
-        payload += key + value;
-      }
-    }
-
-    return createHmac("sha1", env.TWILIO_AUTH_TOKEN).update(payload).digest("base64");
   }
 }

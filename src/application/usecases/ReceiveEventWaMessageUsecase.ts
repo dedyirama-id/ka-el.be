@@ -1,4 +1,5 @@
 import { Tag } from "@/domain/entities/Tag";
+import type { WaMessage } from "@/domain/entities/WaMessage";
 import type { EventRepository } from "@/domain/repositories/EventRepository";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { TagRepository } from "@/domain/repositories/TagRepository";
@@ -22,11 +23,8 @@ type Deps = {
 export class ReplyEventWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(from: string, rawEvent: string): Promise<object> {
-    const normalizedPhone = this.ensureWhatsappPrefix(from);
-    const phoneNumber = normalizedPhone.replace(/^whatsapp:/, "");
-
-    const parsedEvent = await this.deps.aiService.parseEvent(rawEvent);
+  async execute(message: WaMessage): Promise<boolean> {
+    const parsedEvent = await this.deps.aiService.parseEvent(message.text);
     const tags = parsedEvent.tags.map((tag) => tag.name.toLowerCase());
     const existingTags = await this.deps.tagRepository.findByNames(tags);
     const newTagNames = tags
@@ -40,11 +38,10 @@ export class ReplyEventWaMessageUsecase {
     parsedEvent.setTags([...existingTags, ...newTags]);
     const event = await this.deps.eventRepository.save(parsedEvent);
 
-    let messageSent = {};
-    const user = await this.deps.userRepository.findByPhone(phoneNumber);
+    const user = await this.deps.userRepository.findByPhone(message.from);
     if (user) {
-      const message = this.deps.messageGenerator.generateNewEventMessage(event);
-      messageSent = await this.deps.whatsappService.sendWhatsApp(phoneNumber, message);
+      const messageContent = this.deps.messageGenerator.generateNewEventMessage(event);
+      await this.deps.whatsappService.sendToChat(message.from, messageContent, message.chatType);
     }
 
     const relatedUsers = await this.deps.userRepository.findByTags(
@@ -52,21 +49,25 @@ export class ReplyEventWaMessageUsecase {
     );
 
     for (const relatedUser of relatedUsers) {
-      if (relatedUser.phoneE164 === phoneNumber) continue;
+      if (relatedUser.phoneE164 === message.from) continue;
 
-      const message = this.deps.messageGenerator.generateNewEventNotificationMessage(event);
-      await this.deps.whatsappService.sendWhatsApp(
-        relatedUser.phoneE164,
-        `👋🏻 Hi, ${relatedUser.name}! Ada event baru nih...`,
-      );
-      await this.deps.whatsappService.sendWhatsApp(relatedUser.phoneE164, message);
+      const messageContent = this.deps.messageGenerator.generateNewEventNotificationMessage(event);
+      if (message.chatType === "personal") {
+        await this.deps.whatsappService.sendToChat(
+          relatedUser.phoneE164,
+          `👋🏻 Hi, ${relatedUser.name}! Ada event baru nih...`,
+          message.chatType,
+        );
+
+        await this.deps.whatsappService.sendToChat(
+          relatedUser.phoneE164,
+          messageContent,
+          message.chatType,
+        );
+      }
     }
 
-    return messageSent;
-  }
-
-  private ensureWhatsappPrefix(phone: string): string {
-    return phone.startsWith("whatsapp:") ? phone : `whatsapp:${phone}`;
+    return true;
   }
 
   toTitleCase(str: string) {

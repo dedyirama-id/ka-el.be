@@ -7,7 +7,7 @@ export const intentSchema = z
   );
 
 export const parsedIntentSchema = z.object({
-  token: intentSchema,
+  intent: intentSchema,
   value: z.string().describe("Extracted content associated with the intent."),
   raw: z.string().describe("Original message from the user before processing."),
 });

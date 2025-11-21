@@ -6,6 +6,7 @@ import type { AIService } from "@/domain/Services/AIService";
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
 import type { MessageGenerator } from "../../domain/Services/MessageGenerator";
+import type { WaMessage } from "@/domain/entities/WaMessage";
 
 type Deps = {
   whatsappService: WhatsappService;
@@ -21,38 +22,38 @@ type Deps = {
 export class ReplySearchEventWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(from: string, text: string): Promise<boolean> {
-    const normalizedPhone = this.ensureWhatsappPrefix(from);
-    const phoneNumber = normalizedPhone.replace(/^whatsapp:/, "");
-    const existingUser = await this.deps.userRepository.findByPhone(phoneNumber);
+  async execute(message: WaMessage): Promise<boolean> {
+    const existingUser = await this.deps.userRepository.findByPhone(message.from);
     if (!existingUser) {
       throw new Error("User not found");
     }
-    const queries = await this.deps.aiService.parseSearchQuery(text);
+    const queries = await this.deps.aiService.parseSearchQuery(message.text);
     const events = await this.deps.eventRepository.search(queries);
 
     if (events.length === 0) {
-      await this.deps.whatsappService.sendWhatsApp(
+      await this.deps.whatsappService.sendToChat(
         existingUser.phoneE164,
-        `Maaf saat ini lomba yang kamu cari tidak ada`,
+        `Maaf saat ini event yang kamu cari tidak ada`,
+        message.chatType,
       );
       return false;
     }
 
-    await this.deps.whatsappService.sendWhatsApp(
+    await this.deps.whatsappService.sendToChat(
       existingUser.phoneE164,
       `Hi, ini hasil pencarianmu`,
+      message.chatType,
     );
     for (const event of events) {
-      const message = this.deps.messageGenerator.generateEventMessage(event);
-      await this.deps.whatsappService.sendWhatsApp(existingUser.phoneE164, message);
+      const messageContent = this.deps.messageGenerator.generateEventMessage(event);
+      await this.deps.whatsappService.sendToChat(
+        existingUser.phoneE164,
+        messageContent,
+        message.chatType,
+      );
     }
 
     return true;
-  }
-
-  private ensureWhatsappPrefix(phone: string): string {
-    return phone.startsWith("whatsapp:") ? phone : `whatsapp:${phone}`;
   }
 
   toTitleCase(str: string) {
