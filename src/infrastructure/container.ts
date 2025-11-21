@@ -36,6 +36,7 @@ import { PrismaTagRepository } from "./persistence/prisma/TagRepository";
 import type { TagRepository } from "@/domain/repositories/TagRepository";
 import type { MessageGenerator } from "@/domain/Services/MessageGenerator";
 import { WaMessageGenerator } from "./template/WaMessageGenerator";
+import { ReplySearchEventWaMessageUsecase } from "../application/usecases/ReplySearchEventWaMessageUsecase";
 
 export interface Cradle {
   prisma: PrismaClient;
@@ -58,6 +59,7 @@ export interface Cradle {
   eventRepository: EventRepository;
   tagRepository: TagRepository;
   messageGenerator: MessageGenerator;
+  replySearchEventWaMessageUsecase: ReplySearchEventWaMessageUsecase;
 }
 
 const container: AwilixContainer<Cradle> = createContainer<Cradle>({
@@ -103,6 +105,7 @@ container.register({
   replyRegisterWaMessageUsecase: asClass(ReplyRegisterWaMessageUsecase).singleton(),
   replyProfileWaMessageUsecase: asClass(ReplyProfileWaMessageUsecase).singleton(),
   replyEventWaMessageUsecase: asClass(ReplyEventWaMessageUsecase).singleton(),
+  replySearchEventWaMessageUsecase: asClass(ReplySearchEventWaMessageUsecase).singleton(),
 });
 
 export default container;
