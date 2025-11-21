@@ -1,4 +1,4 @@
-import { MessageReceived } from "@/domain/entities/MessageReceived";
+import { WaMessage } from "@/domain/entities/WaMessage";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { AIService } from "@/domain/Services/AIService";
@@ -11,37 +11,46 @@ type Deps = {
   aiService: AIService;
 };
 
-type Input = {
-  from: string;
-  body: string;
-};
-
 export class ReceiveWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(input: Input): Promise<MessageReceived> {
-    const phone = input.from.replace(/^whatsapp:/, "");
-
+  async execute(message: WaMessage): Promise<WaMessage> {
     const id = `msg-${this.deps.idGenerator.generateId()}`;
-    const existingUser = await this.deps.userRepository.findByPhone(phone);
+    const existingUser = await this.deps.userRepository.findByPhone(message.from);
     if (existingUser) {
       await this.deps.messageRepository.create({
         id,
-        phoneNumber: phone,
+        phoneNumber: message.from,
         role: "user",
-        content: input.body,
+        content: message.text,
         meta: null,
       });
     }
 
-    const tokens = input.body.trim().split(/\s+/);
+    const tokens = message.text.trim().split(/\s+/);
     if (tokens[0]?.includes("@")) {
       const intent = tokens.at(0)?.toLowerCase() ?? "";
       const value = tokens.slice(1).join(" ").trim();
-      return new MessageReceived(id, phone, intent, value, input.body);
+      return new WaMessage({
+        from: message.from,
+        to: message.to,
+        text: message.text,
+        chatType: message.chatType,
+        participant: message.participant,
+        intent,
+        value: value,
+      });
     }
 
-    const intent = await this.deps.aiService.parseIntent(input.body);
-    return new MessageReceived(id, phone, intent.token, intent.value, input.body);
+    const intent = await this.deps.aiService.parseIntent(message.text);
+    return new WaMessage({
+      from: message.from,
+      to: message.to,
+      text: message.text,
+      chatType: message.chatType,
+      participant: message.participant,
+      intent: intent.intent,
+      value: intent.value,
+    });
   }
 }

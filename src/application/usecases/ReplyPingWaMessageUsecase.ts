@@ -1,3 +1,4 @@
+import type { WaMessage } from "@/domain/entities/WaMessage";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
 
@@ -9,11 +10,13 @@ type Deps = {
 export class ReplyPingWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(to: string): Promise<object> {
-    const targetPhone = to.replace(/^whatsapp:/, "");
+  async execute(message: WaMessage): Promise<object> {
+    const messageSent = await this.deps.whatsappService.sendToChat(
+      message.from,
+      "pong!",
+      message.chatType,
+    );
 
-    const message = await this.deps.whatsappService.sendWhatsApp(targetPhone, "pong!");
-
-    return message;
+    return messageSent;
   }
 }

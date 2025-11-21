@@ -1,4 +1,5 @@
 import { NotFoundError } from "@/commons/exceptions/NotFoundError";
+import type { WaMessage } from "@/domain/entities/WaMessage";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { AIService } from "@/domain/Services/AIService";
@@ -16,22 +17,22 @@ type Deps = {
 export class ReplyGeneralWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(phoneNumber: string, message: string): Promise<object> {
-    const normalizedPhone = this.ensureWhatsappPrefix(phoneNumber);
-    const targetPhone = normalizedPhone.replace(/^whatsapp:/, "");
-
-    const user = await this.deps.userRepository.findByPhone(targetPhone);
+  async execute(message: WaMessage): Promise<boolean> {
+    const user = await this.deps.userRepository.findByPhone(message.from);
     if (!user) {
       throw new NotFoundError("User not found");
     }
 
-    const replyMessage = await this.deps.aiService.replyGeneralMessage(message);
-    const messageSent = await this.deps.whatsappService.sendWhatsApp(targetPhone, replyMessage);
-
+    const replyMessage = await this.deps.aiService.replyGeneralMessage(message.text);
+    const messageSent = await this.deps.whatsappService.sendToChat(
+      message.from,
+      replyMessage,
+      message.chatType,
+    );
     const messageId = this.deps.idGenerator.generateId();
     await this.deps.messageRepository.create({
       id: messageId,
-      phoneNumber: targetPhone,
+      phoneNumber: message.from,
       role: "system",
       content: messageSent.text,
       meta: {
@@ -40,11 +41,7 @@ export class ReplyGeneralWaMessageUsecase {
       },
     });
 
-    return messageSent;
-  }
-
-  private ensureWhatsappPrefix(phone: string): string {
-    return phone.startsWith("whatsapp:") ? phone : `whatsapp:${phone}`;
+    return true;
   }
 
   toTitleCase(str: string) {

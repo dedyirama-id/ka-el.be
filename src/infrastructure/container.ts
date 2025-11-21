@@ -1,6 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
 import type { TransactionManager } from "@/application/ports/TransactionManager";
-import type { WhatsAppMessenger } from "@/application/ports/WhatsappMessenger";
 import { ReceiveWaMessageUsecase } from "@/application/usecases/ReceiveWaMessageUsecase";
 import { ReplyGeneralWaMessageUsecase } from "@/application/usecases/ReplyGeneralWaMessageUsecase";
 import { ReplyPingWaMessageUsecase } from "@/application/usecases/ReplyPingWaMessageUsecase";
@@ -23,8 +22,6 @@ import { PrismaTransactionManager } from "./persistence/prisma/TransactionManage
 import { PrismaUserRepository } from "./persistence/prisma/UserRepository";
 import { IdGenerator } from "./security/IdGenerator";
 import { BaileysWhatsapp } from "./whatsapp/baileys/BaileysWhatsapp";
-import { TwilioWhatsapp } from "./whatsapp/twilio/TwilioWhatsapp";
-import { WhatsappServiceAdapter } from "./whatsapp/WhatsappServiceAdapter";
 import { ReplyKaelWaMessageUsecase } from "@/application/usecases/ReplyKaelWaMessageUsecase";
 import { ReplyRegisterWaMessageUsecase } from "@/application/usecases/ReplyRegisterWaMessageUsecase";
 import { GeminiAIService } from "./ai/gemini/GeminiAIService";
@@ -43,7 +40,6 @@ export interface Cradle {
   tx: TransactionManager;
   waServiceNumber: string;
   waLinkTtlMs: number;
-  whatsappMessenger: WhatsAppMessenger;
   whatsappService: WhatsappService;
   aiService: AIService;
   userRepository: UserRepository;
@@ -73,18 +69,13 @@ container.register({
   waLinkTtlMs: asValue(15 * 60 * 1000 /* 15 min */),
 
   // Service
-  whatsappMessenger: asFunction(() => {
-    if (env.WHATSAPP_PROVIDER === "twilio") {
-      return new TwilioWhatsapp();
-    }
-
-    return new BaileysWhatsapp({
+  whatsappService: asClass(BaileysWhatsapp, {
+    injector: () => ({
       authDir: env.WA_BAILEYS_AUTH_DIR,
-    });
+      connectionTimeoutMs: 60_000,
+      qrCallback: undefined,
+    }),
   }).singleton(),
-  whatsappService: asFunction(
-    ({ whatsappMessenger }) => new WhatsappServiceAdapter(whatsappMessenger),
-  ).singleton(),
   aiService: asClass(GeminiAIService).singleton(),
   idGenerator: asClass(IdGenerator).singleton(),
   messageGenerator: asClass(WaMessageGenerator).singleton(),

@@ -1,5 +1,5 @@
 export interface IntentProps {
-  token: string;
+  intent: string;
   value: string;
   raw: string;
 }
@@ -11,8 +11,8 @@ export class Intent {
     this.props = props;
   }
 
-  get token() {
-    return this.props.token;
+  get intent() {
+    return this.props.intent;
   }
   get value() {
     return this.props.value;

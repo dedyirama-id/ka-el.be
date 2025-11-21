@@ -1,6 +1,7 @@
 import { NotFoundError } from "@/commons/exceptions/NotFoundError";
 import type { MessageSent } from "@/domain/entities/MessageSent";
 import { Tag } from "@/domain/entities/Tag";
+import type { WaMessage } from "@/domain/entities/WaMessage";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { TagRepository } from "@/domain/repositories/TagRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
@@ -18,26 +19,24 @@ type Deps = {
 export class ReplyProfileWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(from: string, value: string): Promise<MessageSent> {
-    const normalizedPhone = this.ensureWhatsappPrefix(from);
-    const phoneNumber = normalizedPhone.replace(/^whatsapp:/, "");
-
-    if (!value) {
-      await this.deps.whatsappService.sendWhatsApp(
-        phoneNumber,
+  async execute(message: WaMessage): Promise<MessageSent> {
+    if (!message.text || message.text.trim() === "") {
+      await this.deps.whatsappService.sendToChat(
+        message.from,
         [
           "Kamu masih belum mengirimkan deskripsi profile. Tolong berikan Kael deskripsi profilemu.",
           "Contoh: @profile saya ingin mengikuti lomba BPC (Business Plan Competition)",
         ].join("\n"),
+        message.chatType,
       );
     }
 
-    const existingUser = await this.deps.userRepository.findByPhone(phoneNumber);
+    const existingUser = await this.deps.userRepository.findByPhone(message.from);
     if (!existingUser) {
       throw new NotFoundError("User Not Found");
     }
 
-    const proofedProfile = await this.deps.aiService.proofreadingMessage(value);
+    const proofedProfile = await this.deps.aiService.proofreadingMessage(message.text);
     const tags = await this.deps.aiService.parseTags(proofedProfile);
     const existingTags = await this.deps.tagRepository.findByNames(
       tags.map((tag) => tag.toLowerCase()),
@@ -54,20 +53,17 @@ export class ReplyProfileWaMessageUsecase {
     existingUser.setTags([...existingTags, ...newTags]);
     const updatedUser = await this.deps.userRepository.save(existingUser);
 
-    const message = await this.deps.whatsappService.sendWhatsApp(
-      phoneNumber,
+    const messageSent = await this.deps.whatsappService.sendToChat(
+      message.from,
       [
         `Okey, Kael sudah memperbarui profilemu! Ka'el akan memberikan notifikasi lomba yang sesuai dengan minatmu, ${updatedUser.name}.`,
         "",
         `> ${updatedUser.profile}`,
         `> ${updatedUser.tags.map((tag) => `\`${tag.name}\``).join(", ")}`,
       ].join("\n"),
+      message.chatType,
     );
-    return message;
-  }
-
-  private ensureWhatsappPrefix(phone: string): string {
-    return phone.startsWith("whatsapp:") ? phone : `whatsapp:${phone}`;
+    return messageSent;
   }
 
   toTitleCase(str: string) {
