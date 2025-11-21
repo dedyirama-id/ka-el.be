@@ -43,7 +43,7 @@ export class WaMessageGenerator implements MessageGenerator {
 
   generateEventMessage(event: Event): string {
     return [
-      `> Id: ${event.id}*`,
+      `> ID: ${event.id}`,
       `*${event.title}*`,
       `${event.description}`,
       `💵 ${event.priceMax - event.priceMin == 0 ? "Free" : `Rp${event.priceMin} - Rp${event.priceMax}`}`,

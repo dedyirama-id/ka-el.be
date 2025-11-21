@@ -11,8 +11,7 @@ import type { Context } from "hono";
 import { Buffer } from "node:buffer";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { ReplyEventWaMessageUsecase } from "@/application/usecases/ReceiveEventWaMessageUsecase";
-import type { AIService } from "@/domain/Services/AIService";
-import type { EventRepository } from "@/domain/repositories/EventRepository";
+import type { ReplySearchEventWaMessageUsecase } from "@/application/usecases/ReplySearchEventWaMessageUsecase";
 
 type Deps = {
   receiveWaMessageUsecase: ReceiveWaMessageUsecase;
@@ -22,9 +21,7 @@ type Deps = {
   replyRegisterWaMessageUsecase: ReplyRegisterWaMessageUsecase;
   replyProfileWaMessageUsecase: ReplyProfileWaMessageUsecase;
   replyEventWaMessageUsecase: ReplyEventWaMessageUsecase;
-
-  aiService: AIService;
-  eventRepository: EventRepository;
+  replySearchEventWaMessageUsecase: ReplySearchEventWaMessageUsecase;
 };
 
 export class WebhookController {
@@ -61,9 +58,9 @@ export class WebhookController {
       case "add_event":
         await this.deps.replyEventWaMessageUsecase.execute(payload.from, message.text);
         break;
-      case "search_event": {
-        throw new Error("Not implemented yet");
-      }
+      case "search_event":
+        await this.deps.replySearchEventWaMessageUsecase.execute(payload.from, message.text);
+        break;
       default:
         await this.deps.replyGeneralWaMessageUsecase.execute(payload.from, message.text);
         break;

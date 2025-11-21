@@ -71,6 +71,9 @@ export class PrismaEventRepository implements EventRepository {
             },
           },
         ]),
+        AND: {
+          endDate: { gte: new Date() },
+        },
       },
       include: {
         tags: {
