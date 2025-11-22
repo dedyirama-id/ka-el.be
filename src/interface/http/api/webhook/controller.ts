@@ -6,9 +6,10 @@ import type { ReplyRegisterWaMessageUsecase } from "@/application/usecases/Reply
 import type { ReplyProfileWaMessageUsecase } from "@/application/usecases/ReplyProfileWaMessageUsecase";
 import { ReceiveWaSchema } from "@/interface/validators/ReceiveWaSchema";
 import type { Context } from "hono";
-import type { ReplyEventWaMessageUsecase } from "@/application/usecases/ReceiveEventWaMessageUsecase";
+import type { ReplyEventWaMessageUsecase } from "@/application/usecases/ReplyEventWaMessageUsecase";
 import type { ReplySearchEventWaMessageUsecase } from "@/application/usecases/ReplySearchEventWaMessageUsecase";
 import { WaMessage } from "@/domain/entities/WaMessage";
+import type { ReplyLogoutWaMessageUsecase } from "@/application/usecases/ReplyLogoutWaMessageUsecase";
 
 type Deps = {
   receiveWaMessageUsecase: ReceiveWaMessageUsecase;
@@ -19,6 +20,7 @@ type Deps = {
   replyProfileWaMessageUsecase: ReplyProfileWaMessageUsecase;
   replyEventWaMessageUsecase: ReplyEventWaMessageUsecase;
   replySearchEventWaMessageUsecase: ReplySearchEventWaMessageUsecase;
+  replyLogoutWaMessageUsecase: ReplyLogoutWaMessageUsecase;
 };
 
 export class WebhookController {
@@ -44,6 +46,9 @@ export class WebhookController {
         break;
       case "@profile":
         await this.deps.replyProfileWaMessageUsecase.execute(message);
+        break;
+      case "@logout":
+        await this.deps.replyLogoutWaMessageUsecase.execute(message);
         break;
       case "add_event":
         await this.deps.replyEventWaMessageUsecase.execute(message);

@@ -8,6 +8,7 @@ export interface UserProps {
   tz: string;
   createdAt: Date;
   updatedAt: Date;
+  isLoggedIn: boolean;
   tags: Tag[];
 }
 
@@ -34,6 +35,7 @@ export class User {
       tz: params.tz,
       createdAt: now,
       updatedAt: now,
+      isLoggedIn: params.isLoggedIn,
       tags: tags,
     });
   }
@@ -69,12 +71,18 @@ export class User {
   get tags() {
     return this.props.tags;
   }
+  isLoggedIn() {
+    return this.props.isLoggedIn;
+  }
 
   setProfile(profile: string) {
     this.props.profile = profile.trim();
   }
   setTags(tags: Tag[]) {
     this.props.tags = tags;
+  }
+  setIsLoggedIn(isLoggedIn: boolean) {
+    this.props.isLoggedIn = isLoggedIn;
   }
 
   toProps(): UserProps {

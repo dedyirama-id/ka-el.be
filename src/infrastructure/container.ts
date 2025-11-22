@@ -26,7 +26,7 @@ import { ReplyKaelWaMessageUsecase } from "@/application/usecases/ReplyKaelWaMes
 import { ReplyRegisterWaMessageUsecase } from "@/application/usecases/ReplyRegisterWaMessageUsecase";
 import { GeminiAIService } from "./ai/gemini/GeminiAIService";
 import { ReplyProfileWaMessageUsecase } from "@/application/usecases/ReplyProfileWaMessageUsecase";
-import { ReplyEventWaMessageUsecase } from "@/application/usecases/ReceiveEventWaMessageUsecase";
+import { ReplyEventWaMessageUsecase } from "@/application/usecases/ReplyEventWaMessageUsecase";
 import { PrismaEventRepository } from "./persistence/prisma/EventRepository";
 import type { EventRepository } from "@/domain/repositories/EventRepository";
 import { PrismaTagRepository } from "./persistence/prisma/TagRepository";
@@ -34,6 +34,7 @@ import type { TagRepository } from "@/domain/repositories/TagRepository";
 import type { MessageGenerator } from "@/domain/Services/MessageGenerator";
 import { WaMessageGenerator } from "./template/WaMessageGenerator";
 import { ReplySearchEventWaMessageUsecase } from "../application/usecases/ReplySearchEventWaMessageUsecase";
+import { ReplyLogoutWaMessageUsecase } from "@/application/usecases/ReplyLogoutWaMessageUsecase";
 
 export interface Cradle {
   prisma: PrismaClient;
@@ -56,6 +57,7 @@ export interface Cradle {
   tagRepository: TagRepository;
   messageGenerator: MessageGenerator;
   replySearchEventWaMessageUsecase: ReplySearchEventWaMessageUsecase;
+  replyLogoutWaMessageUsecase: ReplyLogoutWaMessageUsecase;
 }
 
 const container: AwilixContainer<Cradle> = createContainer<Cradle>({
@@ -97,6 +99,7 @@ container.register({
   replyProfileWaMessageUsecase: asClass(ReplyProfileWaMessageUsecase).singleton(),
   replyEventWaMessageUsecase: asClass(ReplyEventWaMessageUsecase).singleton(),
   replySearchEventWaMessageUsecase: asClass(ReplySearchEventWaMessageUsecase).singleton(),
+  replyLogoutWaMessageUsecase: asClass(ReplyLogoutWaMessageUsecase).singleton(),
 });
 
 export default container;

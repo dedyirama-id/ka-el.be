@@ -23,16 +23,16 @@ export class ReplySearchEventWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
   async execute(message: WaMessage): Promise<boolean> {
-    const existingUser = await this.deps.userRepository.findByPhone(message.from);
-    if (!existingUser) {
-      throw new Error("User not found");
+    const user = await this.deps.userRepository.findByPhone(message.from);
+    if (!user || !user.isLoggedIn()) {
+      return false;
     }
     const queries = await this.deps.aiService.parseSearchQuery(message.text);
     const events = await this.deps.eventRepository.search(queries);
 
     if (events.length === 0) {
       await this.deps.whatsappService.sendToChat(
-        existingUser.phoneE164,
+        user.phoneE164,
         `Maaf saat ini event yang kamu cari tidak ada`,
         message.chatType,
       );
@@ -40,17 +40,13 @@ export class ReplySearchEventWaMessageUsecase {
     }
 
     await this.deps.whatsappService.sendToChat(
-      existingUser.phoneE164,
+      user.phoneE164,
       `Hi, ini hasil pencarianmu`,
       message.chatType,
     );
     for (const event of events) {
       const messageContent = this.deps.messageGenerator.generateEventMessage(event);
-      await this.deps.whatsappService.sendToChat(
-        existingUser.phoneE164,
-        messageContent,
-        message.chatType,
-      );
+      await this.deps.whatsappService.sendToChat(user.phoneE164, messageContent, message.chatType);
     }
 
     return true;

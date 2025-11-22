@@ -9,6 +9,7 @@ export const toDomainUser = (row: UserRow): User =>
     profile: row.profile,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    isLoggedIn: row.isLoggedIn,
     tz: row.tz,
     tags: [], // Tags should be loaded separately
   });
