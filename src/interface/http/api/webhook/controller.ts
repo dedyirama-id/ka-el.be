@@ -10,6 +10,7 @@ import type { ReplyEventWaMessageUsecase } from "@/application/usecases/ReplyEve
 import type { ReplySearchEventWaMessageUsecase } from "@/application/usecases/ReplySearchEventWaMessageUsecase";
 import { WaMessage } from "@/domain/entities/WaMessage";
 import type { ReplyLogoutWaMessageUsecase } from "@/application/usecases/ReplyLogoutWaMessageUsecase";
+import type { ReplyLoginWaMessageUsecase } from "@/application/usecases/ReplyLoginWaMessageUsecase";
 
 type Deps = {
   receiveWaMessageUsecase: ReceiveWaMessageUsecase;
@@ -21,6 +22,7 @@ type Deps = {
   replyEventWaMessageUsecase: ReplyEventWaMessageUsecase;
   replySearchEventWaMessageUsecase: ReplySearchEventWaMessageUsecase;
   replyLogoutWaMessageUsecase: ReplyLogoutWaMessageUsecase;
+  replyLoginWaMessageUsecase: ReplyLoginWaMessageUsecase;
 };
 
 export class WebhookController {
@@ -49,6 +51,9 @@ export class WebhookController {
         break;
       case "@logout":
         await this.deps.replyLogoutWaMessageUsecase.execute(message);
+        break;
+      case "@login":
+        await this.deps.replyLoginWaMessageUsecase.execute(message);
         break;
       case "add_event":
         await this.deps.replyEventWaMessageUsecase.execute(message);

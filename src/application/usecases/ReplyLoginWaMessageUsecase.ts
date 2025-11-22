@@ -7,19 +7,19 @@ type Deps = {
   userRepository: UserRepository;
 };
 
-export class ReplyLogoutWaMessageUsecase {
+export class ReplyLoginWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
   async execute(message: WaMessage): Promise<boolean> {
     const user = await this.deps.userRepository.findByPhone(message.from);
-    if (!user || !user.isLoggedIn()) {
+    if (!user || user.isLoggedIn() == true) {
       return false;
     }
 
-    user.setIsLoggedIn(false);
+    user.setIsLoggedIn(true);
     await this.deps.userRepository.save(user);
 
-    const messageContent = `Halo, ${this.toTitleCase(user.name)}. Kamu berhasil logout. Sampai jumpa lain waktu👋🏻`;
+    const messageContent = `Halo, ${this.toTitleCase(user.name)}. Selamat datang kembali👋🏻`;
     await this.deps.whatsappService.sendToChat(message.from, messageContent, message.chatType);
 
     return true;
