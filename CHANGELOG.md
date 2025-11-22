@@ -1,3 +1,10 @@
+## [1.10.2](https://github.com/dedyirama-id/ka-el.be/compare/v1.10.1...v1.10.2) (2025-11-22)
+
+
+### Bug Fixes
+
+* change message styling ([376e2f5](https://github.com/dedyirama-id/ka-el.be/commit/376e2f5123a2332551e49dc98d5d9ddfe39d0ac3))
+
 ## [1.10.1](https://github.com/dedyirama-id/ka-el.be/compare/v1.10.0...v1.10.1) (2025-11-21)
 
 
