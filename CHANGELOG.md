@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/dedyirama-id/ka-el.be/compare/v1.10.0...v1.10.1) (2025-11-21)
+
+
+### Bug Fixes
+
+* change service to handle group chat properly ([071814a](https://github.com/dedyirama-id/ka-el.be/commit/071814aa877e9755e5302af9429006104805b786))
+
 # [1.10.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.9.0...v1.10.0) (2025-11-21)
 
 
