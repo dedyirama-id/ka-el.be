@@ -16,21 +16,20 @@ type Deps = {
 export class ReplyRegisterWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(message: WaMessage): Promise<object> {
+  async execute(message: WaMessage): Promise<boolean> {
     const normalizedName = message.value?.trim() || "";
 
     const registeredUser = await this.deps.userRepository.findByPhone(message.from);
 
     if (registeredUser) {
-      await this.deps.whatsappService.sendToChat(
-        message.from,
-        `Nomor WA kamu sudah terdaftar sebagai *${this.toTitleCase(registeredUser.name)}*`,
-        message.chatType,
-      );
+      const messageContent = [
+        `Nomor WA kamu sudah terdaftar sebagai *${this.toTitleCase(registeredUser.name)}.*`,
+        `Gunakan perintah \`@login\` untuk login ke akunmu*`,
+      ].join("\n");
 
-      return {
-        status: "already_registered",
-      };
+      await this.deps.whatsappService.sendToChat(message.from, messageContent, message.chatType);
+
+      return false;
     }
 
     if (!normalizedName) {
@@ -40,9 +39,7 @@ export class ReplyRegisterWaMessageUsecase {
         message.chatType,
       );
 
-      return {
-        status: "invalid_format",
-      };
+      return false;
     }
 
     const id = this.deps.idGenerator.generateId();
@@ -53,13 +50,9 @@ export class ReplyRegisterWaMessageUsecase {
     });
 
     let messageContent = this.deps.messageGenerator.generateOnboardingMessage(user.name);
-    const messageSent = await this.deps.whatsappService.sendToChat(
-      message.from,
-      messageContent,
-      message.chatType,
-    );
+    await this.deps.whatsappService.sendToChat(message.from, messageContent, message.chatType);
 
-    return messageSent;
+    return true;
   }
 
   toTitleCase(str: string) {

@@ -39,7 +39,7 @@ export class ReplyEventWaMessageUsecase {
     const event = await this.deps.eventRepository.save(parsedEvent);
 
     const user = await this.deps.userRepository.findByPhone(message.from);
-    if (user) {
+    if (user && user.isLoggedIn()) {
       const messageContent = this.deps.messageGenerator.generateNewEventMessage(event);
       await this.deps.whatsappService.sendToChat(message.from, messageContent, message.chatType);
     }

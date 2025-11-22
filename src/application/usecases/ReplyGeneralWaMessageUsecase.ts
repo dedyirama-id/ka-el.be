@@ -1,4 +1,3 @@
-import { NotFoundError } from "@/commons/exceptions/NotFoundError";
 import type { WaMessage } from "@/domain/entities/WaMessage";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
@@ -19,8 +18,8 @@ export class ReplyGeneralWaMessageUsecase {
 
   async execute(message: WaMessage): Promise<boolean> {
     const user = await this.deps.userRepository.findByPhone(message.from);
-    if (!user) {
-      throw new NotFoundError("User not found");
+    if (!user || !user.isLoggedIn()) {
+      return false;
     }
 
     const replyMessage = await this.deps.aiService.replyGeneralMessage(message.text);

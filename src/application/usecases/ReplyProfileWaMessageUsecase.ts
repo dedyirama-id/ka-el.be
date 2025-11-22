@@ -1,5 +1,3 @@
-import { NotFoundError } from "@/commons/exceptions/NotFoundError";
-import type { MessageSent } from "@/domain/entities/MessageSent";
 import { Tag } from "@/domain/entities/Tag";
 import type { WaMessage } from "@/domain/entities/WaMessage";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
@@ -21,21 +19,21 @@ type Deps = {
 export class ReplyProfileWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
-  async execute(message: WaMessage): Promise<MessageSent> {
+  async execute(message: WaMessage): Promise<boolean> {
+    const user = await this.deps.userRepository.findByPhone(message.from);
+    if (!user || !user.isLoggedIn()) {
+      return false;
+    }
+
     if (!message.text || message.text.trim() === "") {
       await this.deps.whatsappService.sendToChat(
         message.from,
         [
-          "Kamu masih belum mengirimkan deskripsi profile. Tolong berikan Kael deskripsi profilemu.",
-          "Contoh: @profile saya ingin mengikuti lomba BPC (Business Plan Competition)",
+          `Kamu masih belum mengirimkan deskripsi profile. Tolong berikan Kael deskripsi profilemu.`,
+          `Contoh: \`@profile saya ingin mengikuti lomba BPC (Business Plan Competition)\``,
         ].join("\n"),
         message.chatType,
       );
-    }
-
-    const existingUser = await this.deps.userRepository.findByPhone(message.from);
-    if (!existingUser) {
-      throw new NotFoundError("User Not Found");
     }
 
     const proofedProfile = await this.deps.aiService.proofreadingMessage(message.text);
@@ -51,21 +49,17 @@ export class ReplyProfileWaMessageUsecase {
       .map((tagName) => Tag.createNew(tagName));
     const newTags = await this.deps.tagRepository.saveMany(newTagNames);
 
-    existingUser.setProfile(proofedProfile);
-    existingUser.setTags([...existingTags, ...newTags]);
-    const updatedUser = await this.deps.userRepository.save(existingUser);
+    user.setProfile(proofedProfile);
+    user.setTags([...existingTags, ...newTags]);
+    const updatedUser = await this.deps.userRepository.save(user);
 
     const messageContent = this.deps.messageGenerator.generateProfileUpdateMessage(
       updatedUser.name,
       updatedUser.profile ?? "",
       updatedUser.tags.map((tag) => tag.name),
     );
-    const messageSent = await this.deps.whatsappService.sendToChat(
-      message.from,
-      messageContent,
-      message.chatType,
-    );
-    return messageSent;
+    await this.deps.whatsappService.sendToChat(message.from, messageContent, message.chatType);
+    return true;
   }
 
   toTitleCase(str: string) {
