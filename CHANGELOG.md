@@ -1,3 +1,15 @@
+# [1.12.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.11.0...v1.12.0) (2025-11-22)
+
+
+### Bug Fixes
+
+* clean code and fix name styling on message ([f73d260](https://github.com/dedyirama-id/ka-el.be/commit/f73d260740dc68c967d1555e857fd4b14e87721e))
+
+
+### Features
+
+* implements login feature ([491e2fb](https://github.com/dedyirama-id/ka-el.be/commit/491e2fbd6b1841e839b1675c2455a63c56ea88ed))
+
 # [1.11.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.10.2...v1.11.0) (2025-11-22)
 
 
