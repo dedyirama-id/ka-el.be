@@ -35,6 +35,7 @@ import type { MessageGenerator } from "@/domain/Services/MessageGenerator";
 import { WaMessageGenerator } from "./template/WaMessageGenerator";
 import { ReplySearchEventWaMessageUsecase } from "../application/usecases/ReplySearchEventWaMessageUsecase";
 import { ReplyLogoutWaMessageUsecase } from "@/application/usecases/ReplyLogoutWaMessageUsecase";
+import { ReplyLoginWaMessageUsecase } from "@/application/usecases/ReplyLoginWaMessageUsecase";
 
 export interface Cradle {
   prisma: PrismaClient;
@@ -58,6 +59,7 @@ export interface Cradle {
   messageGenerator: MessageGenerator;
   replySearchEventWaMessageUsecase: ReplySearchEventWaMessageUsecase;
   replyLogoutWaMessageUsecase: ReplyLogoutWaMessageUsecase;
+  replyLoginWaMessageUsecase: ReplyLoginWaMessageUsecase;
 }
 
 const container: AwilixContainer<Cradle> = createContainer<Cradle>({
@@ -100,6 +102,7 @@ container.register({
   replyEventWaMessageUsecase: asClass(ReplyEventWaMessageUsecase).singleton(),
   replySearchEventWaMessageUsecase: asClass(ReplySearchEventWaMessageUsecase).singleton(),
   replyLogoutWaMessageUsecase: asClass(ReplyLogoutWaMessageUsecase).singleton(),
+  replyLoginWaMessageUsecase: asClass(ReplyLoginWaMessageUsecase).singleton(),
 });
 
 export default container;
