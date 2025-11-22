@@ -6,4 +6,5 @@ export interface UserRepository {
   updateProfile(userId: string, profile: string): Promise<User | null>;
   save(user: User): Promise<User>;
   findByTags(tagNames: string[]): Promise<User[]>;
+  deleteAccount(deleteToken: string): Promise<void>;
 }

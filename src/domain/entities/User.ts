@@ -9,6 +9,7 @@ export interface UserProps {
   createdAt: Date;
   updatedAt: Date;
   isLoggedIn: boolean;
+  deleteToken?: string;
   tags: Tag[];
 }
 
@@ -71,6 +72,10 @@ export class User {
   get tags() {
     return this.props.tags;
   }
+  get deleteToken() {
+    return this.props.deleteToken;
+  }
+
   isLoggedIn() {
     return this.props.isLoggedIn;
   }
