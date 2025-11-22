@@ -1,13 +1,13 @@
 import type { ChatType } from "../value-objects/ChatType";
 
 export interface WaMessageProps {
-  from: string; // sender phone (E.164) or originating number
-  to: string; // recipient: personal phone E.164 or group id
+  from: string;
+  to: string;
   text: string;
   chatType: ChatType;
   intent?: string;
   value?: string;
-  participant?: string; // sender phone in group chat
+  participant?: string;
 }
 
 export class WaMessage {
@@ -44,23 +44,11 @@ export class WaMessage {
   }
 
   validate(props: WaMessageProps): void {
-    const phoneRegex = /^\+\d{10,20}$/;
-    if (props.chatType === "personal") {
-      if (!phoneRegex.test(props.from.toString())) {
-        throw new Error("Invalid phone number format");
-      }
-      if (!phoneRegex.test(props.to.toString())) {
-        throw new Error("Invalid phone number format");
-      }
-      return;
+    if (!/^\+\d{10,20}$/.test(props.from.toString())) {
+      throw new Error("Invalid phone number format");
     }
-
-    if (!props.participant || !phoneRegex.test(props.participant.toString())) {
-      throw new Error("Group messages require participant phone number");
-    }
-
-    if (!props.to) {
-      throw new Error("Group messages require destination group id");
+    if (!/^\+\d{10,20}$/.test(props.to.toString())) {
+      throw new Error("Invalid phone number format");
     }
   }
 }

@@ -24,6 +24,7 @@
     "@prisma/client": "^6.17.1",
     "@whiskeysockets/baileys": "^7.0.0-rc.6",
     "awilix": "^12.0.5",
+    "dayjs": "^1.11.19",
     "envalid": "^8.1.0",
     "hono": "^4.10.2",
     "ioredis": "^5.8.1",

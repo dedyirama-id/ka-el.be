@@ -6,6 +6,7 @@ import type { MessageRepository } from "@/domain/repositories/MessageRepository"
 import type { TagRepository } from "@/domain/repositories/TagRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { AIService } from "@/domain/Services/AIService";
+import type { MessageGenerator } from "@/domain/Services/MessageGenerator";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
 
 type Deps = {
@@ -14,6 +15,7 @@ type Deps = {
   whatsappService: WhatsappService;
   tagRepository: TagRepository;
   aiService: AIService;
+  messageGenerator: MessageGenerator;
 };
 
 export class ReplyProfileWaMessageUsecase {
@@ -53,14 +55,14 @@ export class ReplyProfileWaMessageUsecase {
     existingUser.setTags([...existingTags, ...newTags]);
     const updatedUser = await this.deps.userRepository.save(existingUser);
 
+    const messageContent = this.deps.messageGenerator.generateProfileUpdateMessage(
+      updatedUser.name,
+      updatedUser.profile ?? "",
+      updatedUser.tags.map((tag) => tag.name),
+    );
     const messageSent = await this.deps.whatsappService.sendToChat(
       message.from,
-      [
-        `Okey, Kael sudah memperbarui profilemu! Ka'el akan memberikan notifikasi lomba yang sesuai dengan minatmu, ${updatedUser.name}.`,
-        "",
-        `> ${updatedUser.profile}`,
-        `> ${updatedUser.tags.map((tag) => `\`${tag.name}\``).join(", ")}`,
-      ].join("\n"),
+      messageContent,
       message.chatType,
     );
     return messageSent;
