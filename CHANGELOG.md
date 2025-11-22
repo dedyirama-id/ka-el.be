@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.10.2...v1.11.0) (2025-11-22)
+
+
+### Features
+
+* implements logout feature ([a356fa6](https://github.com/dedyirama-id/ka-el.be/commit/a356fa6eac1ae3d6afbdf38305ea03a74ac80f89))
+
 ## [1.10.2](https://github.com/dedyirama-id/ka-el.be/compare/v1.10.1...v1.10.2) (2025-11-22)
 
 
