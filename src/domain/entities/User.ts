@@ -89,7 +89,7 @@ export class User {
   setIsLoggedIn(isLoggedIn: boolean) {
     this.props.isLoggedIn = isLoggedIn;
   }
-  setDeleteToken(token: string){
+  setDeleteToken(token: string) {
     this.props.deleteToken = token;
   }
 

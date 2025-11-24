@@ -11,7 +11,7 @@ import type { ReplySearchEventWaMessageUsecase } from "@/application/usecases/Re
 import { WaMessage } from "@/domain/entities/WaMessage";
 import type { ReplyLogoutWaMessageUsecase } from "@/application/usecases/ReplyLogoutWaMessageUsecase";
 import type { ReplyLoginWaMessageUsecase } from "@/application/usecases/ReplyLoginWaMessageUsecase";
-import { DeleteUserUseCase } from '../../../../application/usecases/DeleteUserUseCase';
+import { DeleteUserUseCase } from "../../../../application/usecases/DeleteUserUseCase";
 
 type Deps = {
   receiveWaMessageUsecase: ReceiveWaMessageUsecase;
