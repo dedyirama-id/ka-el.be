@@ -1,3 +1,12 @@
+# [1.13.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.12.0...v1.13.0) (2025-11-24)
+
+
+### Features
+
+* implements delete user feature ([a445bff](https://github.com/dedyirama-id/ka-el.be/commit/a445bfff93b7f7b2027db762c8427aa10b2c5f40))
+* implements delete user feature ([de0fd24](https://github.com/dedyirama-id/ka-el.be/commit/de0fd2448a9d6fd6df46537c46feaa5b3091f50a))
+* implements delete user feature ([de0d67e](https://github.com/dedyirama-id/ka-el.be/commit/de0d67e1eadd515b05240d4175eba4b936338a48))
+
 # [1.12.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.11.0...v1.12.0) (2025-11-22)
 
 
