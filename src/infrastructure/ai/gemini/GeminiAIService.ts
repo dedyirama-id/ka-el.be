@@ -151,8 +151,15 @@ export class GeminiAIService implements AIService {
       model: "gemini-2.0-flash-001",
       contents: prompt,
       config: {
-        systemInstruction:
-          "You are a data extractor tool. Extract the raw data to given schema. Only respond with json. Make sure to identify user intent accurately based on the message content. Distinguish between service intent and event intent. If the message indicates a request to register, update profile, or inquire about user-specific information, classify it as a service intent and user 'general' intent. If the message discusses events, bootcamps, internships, or opportunities, classify it as an event intent.",
+        systemInstruction: [
+          "You are a data extractor tool. Extract data to the given schema and respond ONLY with JSON.",
+          "Classify intent using these Bahasa-first rules:",
+          '- intent = "search_event" if the user wants to mencari/cari/search/find/lihat/rekomendasi event/lomba/bootcamp/magang/beasiswa/pendanaan/opportunity. Contoh: "ada event data science?", "cari lomba UI/UX", "butuh rekomendasi magang backend".',
+          '- intent = "add_event" if the user is menyampaikan/mendaftarkan/mempublikasikan event atau memberikan detail event (judul, tanggal, harga, penyelenggara, link, deskripsi, lokasi, benefit). Anggap add_event meskipun detail belum lengkap.',
+          '- intent = "general" untuk sapaan, small talk, pertanyaan tentang bot, atau topik di luar pencarian/penambahan event.',
+          "Set `value` ke bagian permintaan yang relevan: untuk search gunakan teks query ringkas; untuk add_event ringkas isi event yang disebut; untuk general isi ringkasan niat user.",
+          "Jangan pernah kembalikan intent di luar schema.",
+        ].join("\n"),
         responseMimeType: "application/json",
         responseSchema: z.toJSONSchema(parsedIntentSchema),
       },
