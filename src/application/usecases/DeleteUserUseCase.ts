@@ -26,12 +26,11 @@ export class DeleteUserUseCase {
   async execute(message: WaMessage): Promise<boolean> {
     const user = await this.deps.userRepository.findByPhone(message.from);
     if (!user) {
-      const messageSent = await this.deps.whatsappService.sendToChat(
+      await this.deps.whatsappService.sendToChat(
         message.from,
         "Penghapusan tidak dapat dilakuan, kamu belum membuat akun",
         message.chatType,
       );
-      await this.saveSystemMessage(message.from, messageSent.text, messageSent.id);
       return false;
     }
     if (!message.value) {
@@ -54,12 +53,11 @@ export class DeleteUserUseCase {
     }
     try {
       await this.deps.userRepository.deleteAccount(message.value);
-      const messageSent = await this.deps.whatsappService.sendToChat(
+      await this.deps.whatsappService.sendToChat(
         message.from,
         "Akunmu berhasil terhapus secara permanen jika ingin membuat akun kembali kirim pesan @register",
         message.chatType,
       );
-      await this.saveSystemMessage(message.from, messageSent.text, messageSent.id);
     } catch (e) {
       const messageSent = await this.deps.whatsappService.sendToChat(
         message.from,
