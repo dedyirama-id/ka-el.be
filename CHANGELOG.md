@@ -1,3 +1,10 @@
+## [1.16.2](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.1...v1.16.2) (2025-12-02)
+
+
+### Bug Fixes
+
+* remove unnecesary logging on delete account usecase ([097c544](https://github.com/dedyirama-id/ka-el.be/commit/097c54434debccd98a3e43c5464fd75358204532))
+
 ## [1.16.1](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.0...v1.16.1) (2025-12-02)
 
 
