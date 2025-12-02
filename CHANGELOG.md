@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.15.0...v1.16.0) (2025-12-02)
+
+
+### Features
+
+* implement remove event by admin ([572c3b9](https://github.com/dedyirama-id/ka-el.be/commit/572c3b91a150fc8a09062a2166dd83c51dd4af6f))
+
 # [1.15.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.14.0...v1.15.0) (2025-12-02)
 
 
