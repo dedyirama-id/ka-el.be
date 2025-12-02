@@ -38,6 +38,8 @@ export class ReplyEventWaMessageUsecase {
     parsedEvent.setTags([...existingTags, ...newTags]);
     const event = await this.deps.eventRepository.save(parsedEvent);
 
+    const notifiedPhones = new Set<string>();
+
     const user = await this.deps.userRepository.findByPhone(message.from);
     if (user && user.isLoggedIn()) {
       const messageContent = this.deps.messageGenerator.generateNewEventMessage(event);
@@ -47,6 +49,30 @@ export class ReplyEventWaMessageUsecase {
         message.chatType,
       );
       await this.saveSystemMessage(message.from, messageSent.text, messageSent.id);
+      notifiedPhones.add(user.phoneE164);
+    }
+
+    const adminUsers = await this.deps.userRepository.findByRole("admin");
+    for (const admin of adminUsers) {
+      if (notifiedPhones.has(admin.phoneE164)) continue;
+
+      const detail = this.deps.messageGenerator.generateEventMessage(event);
+
+      const notificationSent = await this.deps.whatsappService.sendToChat(
+        admin.phoneE164,
+        "Event baru telah ditambahkan. Periksa detailnya berikut ini.",
+        message.chatType,
+      );
+
+      const detailSent = await this.deps.whatsappService.sendToChat(
+        admin.phoneE164,
+        detail,
+        message.chatType,
+      );
+
+      await this.saveSystemMessage(admin.phoneE164, notificationSent.text, notificationSent.id);
+      await this.saveSystemMessage(admin.phoneE164, detailSent.text, detailSent.id);
+      notifiedPhones.add(admin.phoneE164);
     }
 
     const relatedUsers = await this.deps.userRepository.findByTags(
@@ -54,7 +80,7 @@ export class ReplyEventWaMessageUsecase {
     );
 
     for (const relatedUser of relatedUsers) {
-      if (relatedUser.phoneE164 === message.from) continue;
+      if (notifiedPhones.has(relatedUser.phoneE164)) continue;
 
       const messageContent = this.deps.messageGenerator.generateNewEventNotificationMessage(event);
       if (message.chatType === "personal") {
@@ -72,6 +98,8 @@ export class ReplyEventWaMessageUsecase {
         );
         await this.saveSystemMessage(relatedUser.phoneE164, messageSent.text, messageSent.id);
       }
+
+      notifiedPhones.add(relatedUser.phoneE164);
     }
 
     return true;

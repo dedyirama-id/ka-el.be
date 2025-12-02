@@ -106,6 +106,14 @@ export class PrismaUserRepository implements UserRepository {
     return users.map(toDomainUser);
   }
 
+  async findByRole(role: UserRole): Promise<User[]> {
+    const users = await this.db.user.findMany({
+      where: { role },
+    });
+
+    return users.map(toDomainUser);
+  }
+
   async deleteAccount(deleteToken: string): Promise<void> {
     await this.db.user.delete({
       where: { deleteToken },
