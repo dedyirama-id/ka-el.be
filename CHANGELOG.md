@@ -1,3 +1,17 @@
+# [1.15.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.14.0...v1.15.0) (2025-12-02)
+
+
+### Bug Fixes
+
+* add notification to all admin when new event created ([ab4d3ca](https://github.com/dedyirama-id/ka-el.be/commit/ab4d3ca6cec4f669fe454b195c259f94d958ad70))
+
+
+### Features
+
+* edit event by admin ([7721318](https://github.com/dedyirama-id/ka-el.be/commit/7721318c63b3da2bddcc7bb65e6400d826ed0588))
+* implement show event by id ([dceae2a](https://github.com/dedyirama-id/ka-el.be/commit/dceae2a87e9c06f52a0561cfcd98ca481d1ddcc2))
+* show event list implemented ([9335994](https://github.com/dedyirama-id/ka-el.be/commit/9335994555a19d25d9590eb1f952cff749183fb5))
+
 # [1.14.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.13.1...v1.14.0) (2025-12-02)
 
 
