@@ -1,3 +1,15 @@
+# [1.14.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.13.1...v1.14.0) (2025-12-02)
+
+
+### Bug Fixes
+
+* change message history limit to 50 ([ef46f0f](https://github.com/dedyirama-id/ka-el.be/commit/ef46f0fd079dead1a1a78915c06d211420c2b8ac))
+
+
+### Features
+
+* implements chat history when requesting to llm ([8f8ac2b](https://github.com/dedyirama-id/ka-el.be/commit/8f8ac2bed4297b1c54e681f58259789208a6c2e6))
+
 ## [1.13.1](https://github.com/dedyirama-id/ka-el.be/compare/v1.13.0...v1.13.1) (2025-12-02)
 
 
