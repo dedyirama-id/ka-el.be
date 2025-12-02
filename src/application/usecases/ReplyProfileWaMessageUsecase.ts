@@ -5,6 +5,7 @@ import type { TagRepository } from "@/domain/repositories/TagRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { AIService } from "@/domain/Services/AIService";
 import type { MessageGenerator } from "@/domain/Services/MessageGenerator";
+import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
 
 type Deps = {
@@ -14,6 +15,7 @@ type Deps = {
   tagRepository: TagRepository;
   aiService: AIService;
   messageGenerator: MessageGenerator;
+  idGenerator: IdGeneratorService;
 };
 
 export class ReplyProfileWaMessageUsecase {
@@ -26,7 +28,7 @@ export class ReplyProfileWaMessageUsecase {
     }
 
     if (!message.text || message.text.trim() === "") {
-      await this.deps.whatsappService.sendToChat(
+      const messageSent = await this.deps.whatsappService.sendToChat(
         message.from,
         [
           `Kamu masih belum mengirimkan deskripsi profile. Tolong berikan Kael deskripsi profilemu.`,
@@ -34,6 +36,7 @@ export class ReplyProfileWaMessageUsecase {
         ].join("\n"),
         message.chatType,
       );
+      await this.saveSystemMessage(message.from, messageSent.text, messageSent.id);
     }
 
     const proofedProfile = await this.deps.aiService.proofreadingMessage(message.text);
@@ -58,11 +61,26 @@ export class ReplyProfileWaMessageUsecase {
       updatedUser.profile ?? "",
       updatedUser.tags.map((tag) => tag.name),
     );
-    await this.deps.whatsappService.sendToChat(message.from, messageContent, message.chatType);
+    const messageSent = await this.deps.whatsappService.sendToChat(
+      message.from,
+      messageContent,
+      message.chatType,
+    );
+    await this.saveSystemMessage(message.from, messageSent.text, messageSent.id);
     return true;
   }
 
   toTitleCase(str: string) {
     return str.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+  }
+
+  private async saveSystemMessage(to: string, content: string, id: string) {
+    await this.deps.messageRepository.create({
+      id: this.deps.idGenerator.generateId(),
+      phoneNumber: to,
+      role: "system",
+      content,
+      meta: { id, text: content },
+    });
   }
 }

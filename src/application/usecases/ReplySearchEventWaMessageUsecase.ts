@@ -4,7 +4,12 @@ import type { EventRepository } from "@/domain/repositories/EventRepository";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { TagRepository } from "@/domain/repositories/TagRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
-import type { AIService, SearchableEvent } from "@/domain/Services/AIService";
+import type {
+  AIService,
+  ChatMessage,
+  SearchableEvent,
+  UserContext,
+} from "@/domain/Services/AIService";
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 import type { MessageGenerator } from "../../domain/Services/MessageGenerator";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
@@ -31,14 +36,16 @@ export class ReplySearchEventWaMessageUsecase {
 
     const availableEvents = await this.deps.eventRepository.findAvailable();
     if (availableEvents.length === 0) {
-      await this.deps.whatsappService.sendToChat(
+      const messageSent = await this.deps.whatsappService.sendToChat(
         user.phoneE164,
         `Maaf, saat ini belum ada event yang tersedia`,
         message.chatType,
       );
+      await this.saveSystemMessage(user.phoneE164, messageSent.text, messageSent.id);
       return false;
     }
 
+    const history = await this.loadHistory(message.from);
     const eventsForAi: SearchableEvent[] = availableEvents
       .filter((event) => event.id !== undefined)
       .map((event) => ({
@@ -53,24 +60,32 @@ export class ReplySearchEventWaMessageUsecase {
         priceMax: event.priceMax,
       }));
 
-    const eventIds = await this.deps.aiService.findMatchingEventIds(message.text, eventsForAi);
+    const userContext: UserContext = { name: user.name, profile: user.profile ?? null };
+    const eventIds = await this.deps.aiService.findMatchingEventIds(
+      message.text,
+      eventsForAi,
+      history,
+      userContext,
+    );
 
     if (eventIds.length === 0) {
-      await this.deps.whatsappService.sendToChat(
+      const messageSent = await this.deps.whatsappService.sendToChat(
         user.phoneE164,
         `Maaf saat ini event yang kamu cari tidak ada`,
         message.chatType,
       );
+      await this.saveSystemMessage(user.phoneE164, messageSent.text, messageSent.id);
       return false;
     }
 
     const matchedEvents = await this.deps.eventRepository.findByIds(eventIds);
     if (matchedEvents.length === 0) {
-      await this.deps.whatsappService.sendToChat(
+      const messageSent = await this.deps.whatsappService.sendToChat(
         user.phoneE164,
         `Maaf saat ini event yang kamu cari tidak ada`,
         message.chatType,
       );
+      await this.saveSystemMessage(user.phoneE164, messageSent.text, messageSent.id);
       return false;
     }
 
@@ -79,14 +94,20 @@ export class ReplySearchEventWaMessageUsecase {
       .map((id) => eventsById.get(id))
       .filter((event): event is Event => Boolean(event));
 
-    await this.deps.whatsappService.sendToChat(
+    const greetingSent = await this.deps.whatsappService.sendToChat(
       user.phoneE164,
-      `Hi, ini hasil pencarianmu`,
+      `Hi, ini hasil pencarianmu!`,
       message.chatType,
     );
+    await this.saveSystemMessage(user.phoneE164, greetingSent.text, greetingSent.id);
     for (const event of orderedEvents) {
       const messageContent = this.deps.messageGenerator.generateEventMessage(event);
-      await this.deps.whatsappService.sendToChat(user.phoneE164, messageContent, message.chatType);
+      const messageSent = await this.deps.whatsappService.sendToChat(
+        user.phoneE164,
+        messageContent,
+        message.chatType,
+      );
+      await this.saveSystemMessage(user.phoneE164, messageSent.text, messageSent.id);
     }
 
     return true;
@@ -94,5 +115,23 @@ export class ReplySearchEventWaMessageUsecase {
 
   toTitleCase(str: string) {
     return str.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+  }
+
+  private async loadHistory(phoneNumber: string): Promise<ChatMessage[]> {
+    const messages = await this.deps.messageRepository.findRecentByPhone(phoneNumber, 20);
+    return messages.map((msg) => ({
+      role: msg.role === "assistant" ? "assistant" : msg.role === "tool" ? "system" : msg.role,
+      content: msg.content,
+    }));
+  }
+
+  private async saveSystemMessage(to: string, content: string, id: string) {
+    await this.deps.messageRepository.create({
+      id: this.deps.idGenerator.generateId(),
+      phoneNumber: to,
+      role: "system",
+      content,
+      meta: { id, text: content },
+    });
   }
 }

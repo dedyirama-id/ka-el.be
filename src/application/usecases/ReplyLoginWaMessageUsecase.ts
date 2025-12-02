@@ -1,10 +1,14 @@
 import type { WaMessage } from "@/domain/entities/WaMessage";
+import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
+import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
 
 type Deps = {
   whatsappService: WhatsappService;
   userRepository: UserRepository;
+  messageRepository: MessageRepository;
+  idGenerator: IdGeneratorService;
 };
 
 export class ReplyLoginWaMessageUsecase {
@@ -20,7 +24,18 @@ export class ReplyLoginWaMessageUsecase {
     await this.deps.userRepository.save(user);
 
     const messageContent = `Halo, ${this.toTitleCase(user.name)}. Selamat datang kembali👋🏻`;
-    await this.deps.whatsappService.sendToChat(message.from, messageContent, message.chatType);
+    const messageSent = await this.deps.whatsappService.sendToChat(
+      message.from,
+      messageContent,
+      message.chatType,
+    );
+    await this.deps.messageRepository.create({
+      id: this.deps.idGenerator.generateId(),
+      phoneNumber: message.from,
+      role: "system",
+      content: messageSent.text,
+      meta: { id: messageSent.id, text: messageSent.text },
+    });
 
     return true;
   }

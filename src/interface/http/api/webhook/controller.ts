@@ -12,6 +12,7 @@ import { WaMessage } from "@/domain/entities/WaMessage";
 import type { ReplyLogoutWaMessageUsecase } from "@/application/usecases/ReplyLogoutWaMessageUsecase";
 import type { ReplyLoginWaMessageUsecase } from "@/application/usecases/ReplyLoginWaMessageUsecase";
 import { DeleteUserUseCase } from "../../../../application/usecases/DeleteUserUseCase";
+import { logger } from "@/commons/logger";
 
 type Deps = {
   receiveWaMessageUsecase: ReceiveWaMessageUsecase;
@@ -37,6 +38,7 @@ export class WebhookController {
 
     const payload = ReceiveWaSchema.parse(body);
     const message = await this.deps.receiveWaMessageUsecase.execute(new WaMessage(payload));
+    logger.info("Received WA message", { from: message.from, intent: message.intent });
 
     switch (message.intent) {
       case "@ping":

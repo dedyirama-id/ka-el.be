@@ -10,4 +10,5 @@ export interface MessageRepository {
     content: string;
     meta: JsonValue | null;
   }): Promise<Message>;
+  findRecentByPhone(phoneNumber: string, limit?: number): Promise<Message[]>;
 }

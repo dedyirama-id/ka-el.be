@@ -1,6 +1,11 @@
 import { env } from "@/commons/config/env";
 import { Event } from "@/domain/entities/Event";
-import type { AIService, SearchableEvent } from "@/domain/Services/AIService";
+import type {
+  AIService,
+  ChatMessage,
+  SearchableEvent,
+  UserContext,
+} from "@/domain/Services/AIService";
 import { GoogleGenAI } from "@google/genai";
 import { parsedEventSchema, type ParsedEventDto } from "../ParsedEventSchema";
 import { InvariantError } from "@/commons/exceptions/InvariantError";
@@ -18,23 +23,33 @@ export class GeminiAIService implements AIService {
     this.ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
   }
 
-  async replyGeneralMessage(message: string): Promise<string> {
+  async replyGeneralMessage(
+    message: string,
+    history: ChatMessage[],
+    user?: UserContext,
+  ): Promise<string> {
     const prompt = message.trim();
     if (!prompt) {
       throw new Error("Message for Gemini AI must not be empty");
     }
 
+    const historyText = this.formatHistory(history);
+    const userContext = this.formatUserContext(user);
+    const finalPrompt = [userContext, historyText, `Pesan pengguna: ${prompt}`]
+      .filter(Boolean)
+      .join("\n\n");
+
     const systemInstruction = [
       "You are Ka'el, a friendly WhatsApp assistant who helps users discover events, bootcamps, internships, and other opportunities. Provide concise, friendly, and helpful responses in Bahasa Indonesia, unless the user clearly communicates in another language.",
+      "You can engage in light small talk, but gently steer the conversation toward helping the user find or manage events/opportunities.",
       "If you don't know the answer, respond with apologies and say you can't help.",
-      "Keep your responses brief and to the point.",
-      "IMPORTANT: only provide information related to events, bootcamps, internships, and opportunities. Do not answer questions outside of these topics.",
+      "Keep your responses brief and to the point. Avoid very long essays.",
       "REFERENCE: kael have following function tag: @register <name>, @profile <description>. Suggest user to resend message with those tag if relevant or if you think user intended to use function tag but typo.",
     ].join("\n");
 
     const result = await this.ai.models.generateContent({
       model: "gemini-2.0-flash",
-      contents: prompt,
+      contents: finalPrompt,
       config: {
         temperature: 0.7,
         systemInstruction,
@@ -211,7 +226,12 @@ export class GeminiAIService implements AIService {
     return parsed.queries;
   }
 
-  async findMatchingEventIds(query: string, events: SearchableEvent[]): Promise<number[]> {
+  async findMatchingEventIds(
+    query: string,
+    events: SearchableEvent[],
+    history: ChatMessage[],
+    user?: UserContext,
+  ): Promise<number[]> {
     const prompt = query.trim();
     if (!prompt) {
       throw new Error("Search query for Gemini AI must not be empty");
@@ -231,14 +251,20 @@ export class GeminiAIService implements AIService {
       priceRange: `${event.priceMin}-${event.priceMax}`,
     }));
 
+    const historyText = this.formatHistory(history);
+    const userContext = this.formatUserContext(user);
     const result = await this.ai.models.generateContent({
       model: "gemini-2.0-flash-001",
       contents: [
         "Tentukan event yang paling relevan dengan permintaan pengguna berdasarkan daftar event berikut.",
+        userContext ? `Profil pengguna (non-sensitif):\n${userContext}` : "",
+        historyText ? `Riwayat percakapan:\n${historyText}` : "",
         `Query pengguna: ${prompt}`,
         "Urutkan ID event dari yang paling relevan. Maksimal rekomendasikan 3 event. Jika tidak ada yang cocok, kembalikan array kosong.",
         `Daftar event:\n${JSON.stringify(condensedEvents, null, 2)}`,
-      ].join("\n\n"),
+      ]
+        .filter(Boolean)
+        .join("\n\n"),
       config: {
         systemInstruction:
           "Kamu adalah asisten pencarian event. Pilih ID event yang paling sesuai dengan query pengguna hanya dari daftar yang diberikan. Pertimbangkan judul, deskripsi, penyelenggara, tanggal, dan tags. Balas dalam format JSON sesuai schema. Jika tidak ada yang relevan, kembalikan array kosong.",
@@ -255,5 +281,22 @@ export class GeminiAIService implements AIService {
     if (!text) return null;
     if (text.length <= maxLength) return text;
     return `${text.slice(0, maxLength)}...`;
+  }
+
+  private formatHistory(history: ChatMessage[], limit = 50): string {
+    if (!history.length) return "";
+    const recent = history.slice(-limit);
+    return recent
+      .map((msg) => {
+        const role = msg.role.toUpperCase();
+        return `${role}: ${msg.content}`;
+      })
+      .join("\n");
+  }
+
+  private formatUserContext(user?: UserContext): string {
+    if (!user) return "";
+    const profile = user.profile ? user.profile.trim() : "";
+    return [`Nama: ${user.name}`, profile ? `Profil: ${profile}` : ""].filter(Boolean).join("\n");
   }
 }

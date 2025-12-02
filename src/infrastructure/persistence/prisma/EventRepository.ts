@@ -93,7 +93,7 @@ export class PrismaEventRepository implements EventRepository {
     );
   }
 
-  async findAvailable(limit = 20): Promise<Event[]> {
+  async findAvailable(limit = 100): Promise<Event[]> {
     const events = await this.db.event.findMany({
       where: {
         endDate: { gte: new Date() },
