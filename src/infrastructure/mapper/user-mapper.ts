@@ -6,6 +6,7 @@ export const toDomainUser = (row: UserRow): User =>
     id: row.id,
     phoneE164: row.phoneE164,
     name: row.name,
+    role: row.role,
     profile: row.profile,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

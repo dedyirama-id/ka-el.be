@@ -1,8 +1,10 @@
+import type { UserRole } from "../value-objects/UserRole";
 import { Tag } from "./Tag";
 
 export interface UserProps {
   id: string | undefined;
   name: string;
+  role: UserRole;
   profile: string | null | undefined;
   phoneE164: string;
   tz: string;
@@ -15,6 +17,7 @@ export interface UserProps {
 
 export type NewUserParams = Omit<UserProps, "id" | "createdAt" | "updatedAt" | "tags"> & {
   tags: string[];
+  role?: UserRole;
 };
 
 export class User {
@@ -31,6 +34,7 @@ export class User {
     return new User({
       id: undefined,
       name: params.name,
+      role: params.role ?? "user",
       profile: params.profile,
       phoneE164: params.phoneE164,
       tz: params.tz,
@@ -53,6 +57,9 @@ export class User {
   }
   get name() {
     return this.props.name;
+  }
+  get role() {
+    return this.props.role;
   }
   get profile() {
     return this.props.profile;
@@ -78,6 +85,9 @@ export class User {
 
   isLoggedIn() {
     return this.props.isLoggedIn;
+  }
+  isAdmin() {
+    return this.props.role === "admin";
   }
 
   setProfile(profile: string) {

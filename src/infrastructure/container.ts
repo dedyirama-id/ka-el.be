@@ -37,6 +37,7 @@ import { ReplySearchEventWaMessageUsecase } from "../application/usecases/ReplyS
 import { ReplyLogoutWaMessageUsecase } from "@/application/usecases/ReplyLogoutWaMessageUsecase";
 import { ReplyLoginWaMessageUsecase } from "@/application/usecases/ReplyLoginWaMessageUsecase";
 import { DeleteUserUseCase } from "@/application/usecases/DeleteUserUseCase";
+import { ReplyEditEventWaMessageUsecase } from "@/application/usecases/ReplyEditEventWaMessageUsecase";
 
 export interface Cradle {
   prisma: PrismaClient;
@@ -55,6 +56,7 @@ export interface Cradle {
   replyRegisterWaMessageUsecase: ReplyRegisterWaMessageUsecase;
   replyProfileWaMessageUsecase: ReplyProfileWaMessageUsecase;
   replyEventWaMessageUsecase: ReplyEventWaMessageUsecase;
+  replyEditEventWaMessageUsecase: ReplyEditEventWaMessageUsecase;
   eventRepository: EventRepository;
   tagRepository: TagRepository;
   messageGenerator: MessageGenerator;
@@ -102,6 +104,7 @@ container.register({
   replyRegisterWaMessageUsecase: asClass(ReplyRegisterWaMessageUsecase).singleton(),
   replyProfileWaMessageUsecase: asClass(ReplyProfileWaMessageUsecase).singleton(),
   replyEventWaMessageUsecase: asClass(ReplyEventWaMessageUsecase).singleton(),
+  replyEditEventWaMessageUsecase: asClass(ReplyEditEventWaMessageUsecase).singleton(),
   replySearchEventWaMessageUsecase: asClass(ReplySearchEventWaMessageUsecase).singleton(),
   replyLogoutWaMessageUsecase: asClass(ReplyLogoutWaMessageUsecase).singleton(),
   replyLoginWaMessageUsecase: asClass(ReplyLoginWaMessageUsecase).singleton(),

@@ -140,4 +140,20 @@ export class PrismaEventRepository implements EventRepository {
       }),
     );
   }
+
+  async findById(id: number): Promise<Event | null> {
+    const event = await this.db.event.findUnique({
+      where: { id },
+      include: {
+        tags: { include: { tag: true } },
+      },
+    });
+
+    if (!event) return null;
+
+    return Event.fromPersistence({
+      ...event,
+      tags: event.tags.map((et) => Tag.fromPersistence(et.tag)),
+    });
+  }
 }
