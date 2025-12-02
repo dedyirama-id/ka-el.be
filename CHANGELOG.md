@@ -1,3 +1,10 @@
+## [1.16.1](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.0...v1.16.1) (2025-12-02)
+
+
+### Bug Fixes
+
+* add on delete cascade constraint to events relation ([75cd93f](https://github.com/dedyirama-id/ka-el.be/commit/75cd93f977897d669ca39aa76286e85551c63a3f))
+
 # [1.16.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.15.0...v1.16.0) (2025-12-02)
 
 
