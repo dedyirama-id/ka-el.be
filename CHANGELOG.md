@@ -1,3 +1,12 @@
+## [1.13.1](https://github.com/dedyirama-id/ka-el.be/compare/v1.13.0...v1.13.1) (2025-12-02)
+
+
+### Bug Fixes
+
+* searching event method change to using LLM ([3a5de72](https://github.com/dedyirama-id/ka-el.be/commit/3a5de72c03b4324d7acb7092c536cd46368ace58))
+* searching event method change to using LLM ([87af2df](https://github.com/dedyirama-id/ka-el.be/commit/87af2df5c0ff40d6962093bfb5b09c8d13337019))
+* tuning system instructon for better intent parser accuracy ([fb2c8b2](https://github.com/dedyirama-id/ka-el.be/commit/fb2c8b20e85adad0614e58b61b48836c9fc08e11))
+
 # [1.13.0](https://github.com/dedyirama-id/ka-el.be/compare/v1.12.0...v1.13.0) (2025-11-24)
 
 
