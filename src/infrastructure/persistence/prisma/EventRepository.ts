@@ -93,6 +93,26 @@ export class PrismaEventRepository implements EventRepository {
     );
   }
 
+  async findAll(): Promise<Event[]> {
+    const events = await this.db.event.findMany({
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+      orderBy: [{ id: "asc" }],
+    });
+
+    return events.map((event) =>
+      Event.fromPersistence({
+        ...event,
+        tags: event.tags.map((et) => Tag.fromPersistence(et.tag)),
+      }),
+    );
+  }
+
   async findAvailable(limit = 100): Promise<Event[]> {
     const events = await this.db.event.findMany({
       where: {
@@ -139,5 +159,21 @@ export class PrismaEventRepository implements EventRepository {
         tags: event.tags.map((et) => Tag.fromPersistence(et.tag)),
       }),
     );
+  }
+
+  async findById(id: number): Promise<Event | null> {
+    const event = await this.db.event.findUnique({
+      where: { id },
+      include: {
+        tags: { include: { tag: true } },
+      },
+    });
+
+    if (!event) return null;
+
+    return Event.fromPersistence({
+      ...event,
+      tags: event.tags.map((et) => Tag.fromPersistence(et.tag)),
+    });
   }
 }

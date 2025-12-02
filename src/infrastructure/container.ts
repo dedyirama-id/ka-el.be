@@ -37,6 +37,9 @@ import { ReplySearchEventWaMessageUsecase } from "../application/usecases/ReplyS
 import { ReplyLogoutWaMessageUsecase } from "@/application/usecases/ReplyLogoutWaMessageUsecase";
 import { ReplyLoginWaMessageUsecase } from "@/application/usecases/ReplyLoginWaMessageUsecase";
 import { DeleteUserUseCase } from "@/application/usecases/DeleteUserUseCase";
+import { ReplyEditEventWaMessageUsecase } from "@/application/usecases/ReplyEditEventWaMessageUsecase";
+import { ReplyListEventWaMessageUsecase } from "@/application/usecases/ReplyListEventWaMessageUsecase";
+import { ReplyShowEventWaMessageUsecase } from "@/application/usecases/ReplyShowEventWaMessageUsecase";
 
 export interface Cradle {
   prisma: PrismaClient;
@@ -55,6 +58,7 @@ export interface Cradle {
   replyRegisterWaMessageUsecase: ReplyRegisterWaMessageUsecase;
   replyProfileWaMessageUsecase: ReplyProfileWaMessageUsecase;
   replyEventWaMessageUsecase: ReplyEventWaMessageUsecase;
+  replyEditEventWaMessageUsecase: ReplyEditEventWaMessageUsecase;
   eventRepository: EventRepository;
   tagRepository: TagRepository;
   messageGenerator: MessageGenerator;
@@ -62,6 +66,8 @@ export interface Cradle {
   replyLogoutWaMessageUsecase: ReplyLogoutWaMessageUsecase;
   replyLoginWaMessageUsecase: ReplyLoginWaMessageUsecase;
   deleteUserUseCase: DeleteUserUseCase;
+  replyListEventWaMessageUsecase: ReplyListEventWaMessageUsecase;
+  replyShowEventWaMessageUsecase: ReplyShowEventWaMessageUsecase;
 }
 
 const container: AwilixContainer<Cradle> = createContainer<Cradle>({
@@ -102,10 +108,13 @@ container.register({
   replyRegisterWaMessageUsecase: asClass(ReplyRegisterWaMessageUsecase).singleton(),
   replyProfileWaMessageUsecase: asClass(ReplyProfileWaMessageUsecase).singleton(),
   replyEventWaMessageUsecase: asClass(ReplyEventWaMessageUsecase).singleton(),
+  replyEditEventWaMessageUsecase: asClass(ReplyEditEventWaMessageUsecase).singleton(),
   replySearchEventWaMessageUsecase: asClass(ReplySearchEventWaMessageUsecase).singleton(),
   replyLogoutWaMessageUsecase: asClass(ReplyLogoutWaMessageUsecase).singleton(),
   replyLoginWaMessageUsecase: asClass(ReplyLoginWaMessageUsecase).singleton(),
   deleteUserUseCase: asClass(DeleteUserUseCase).singleton(),
+  replyListEventWaMessageUsecase: asClass(ReplyListEventWaMessageUsecase).singleton(),
+  replyShowEventWaMessageUsecase: asClass(ReplyShowEventWaMessageUsecase).singleton(),
 });
 
 export default container;

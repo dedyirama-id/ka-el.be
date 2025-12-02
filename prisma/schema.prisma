@@ -24,9 +24,15 @@ enum ChatType {
   group
 }
 
+enum UserRole {
+  user
+  admin
+}
+
 model User {
   id          String    @id @default(uuid())
   name        String
+  role        UserRole  @default(user)
   phoneE164   String    @unique
   tz          String    @default("Asia/Jakarta")
   createdAt   DateTime  @default(now())

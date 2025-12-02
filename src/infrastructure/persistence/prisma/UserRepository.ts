@@ -1,6 +1,7 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { User } from "@/domain/entities/User";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
+import type { UserRole } from "@/domain/value-objects/UserRole";
 import { toDomainUser } from "@/infrastructure/mapper/user-mapper";
 
 type PrismaTx = PrismaClient | Prisma.TransactionClient;
@@ -8,12 +9,18 @@ type PrismaTx = PrismaClient | Prisma.TransactionClient;
 export class PrismaUserRepository implements UserRepository {
   constructor(private readonly db: PrismaTx) {}
 
-  async create(input: { id: string; phoneE164: string; name: string }): Promise<User> {
+  async create(input: {
+    id: string;
+    phoneE164: string;
+    name: string;
+    role?: UserRole;
+  }): Promise<User> {
     const row = await this.db.user.create({
       data: {
         id: input.id,
         phoneE164: input.phoneE164,
         name: input.name,
+        role: input.role ?? "user",
       },
     });
     return toDomainUser(row);
@@ -94,6 +101,14 @@ export class PrismaUserRepository implements UserRepository {
           },
         },
       },
+    });
+
+    return users.map(toDomainUser);
+  }
+
+  async findByRole(role: UserRole): Promise<User[]> {
+    const users = await this.db.user.findMany({
+      where: { role },
     });
 
     return users.map(toDomainUser);
