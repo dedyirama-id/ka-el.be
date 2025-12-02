@@ -176,4 +176,14 @@ export class PrismaEventRepository implements EventRepository {
       tags: event.tags.map((et) => Tag.fromPersistence(et.tag)),
     });
   }
+
+  async deleteById(id: number): Promise<boolean> {
+    try {
+      await this.db.eventTag.deleteMany({ where: { eventId: id } });
+      await this.db.event.delete({ where: { id } });
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }

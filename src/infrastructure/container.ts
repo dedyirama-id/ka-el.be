@@ -40,6 +40,7 @@ import { DeleteUserUseCase } from "@/application/usecases/DeleteUserUseCase";
 import { ReplyEditEventWaMessageUsecase } from "@/application/usecases/ReplyEditEventWaMessageUsecase";
 import { ReplyListEventWaMessageUsecase } from "@/application/usecases/ReplyListEventWaMessageUsecase";
 import { ReplyShowEventWaMessageUsecase } from "@/application/usecases/ReplyShowEventWaMessageUsecase";
+import { ReplyRemoveEventWaMessageUsecase } from "@/application/usecases/ReplyRemoveEventWaMessageUsecase";
 
 export interface Cradle {
   prisma: PrismaClient;
@@ -68,6 +69,7 @@ export interface Cradle {
   deleteUserUseCase: DeleteUserUseCase;
   replyListEventWaMessageUsecase: ReplyListEventWaMessageUsecase;
   replyShowEventWaMessageUsecase: ReplyShowEventWaMessageUsecase;
+  replyRemoveEventWaMessageUsecase: ReplyRemoveEventWaMessageUsecase;
 }
 
 const container: AwilixContainer<Cradle> = createContainer<Cradle>({
@@ -115,6 +117,7 @@ container.register({
   deleteUserUseCase: asClass(DeleteUserUseCase).singleton(),
   replyListEventWaMessageUsecase: asClass(ReplyListEventWaMessageUsecase).singleton(),
   replyShowEventWaMessageUsecase: asClass(ReplyShowEventWaMessageUsecase).singleton(),
+  replyRemoveEventWaMessageUsecase: asClass(ReplyRemoveEventWaMessageUsecase).singleton(),
 });
 
 export default container;
