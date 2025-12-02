@@ -63,7 +63,7 @@ export class ReplyEditEventWaMessageUsecase {
     if (requestedId !== null) {
       const event = await this.deps.eventRepository.findById(requestedId);
       if (!event) {
-        await this.reply(message, `Event dengan id ${requestedId} tidak ditemukan.`);
+        await this.reply(message, `Event dengan id \`${requestedId}\` tidak ditemukan.`);
         return false;
       }
       await this.reply(message, this.formatExistingEventPayload(event));
@@ -101,7 +101,7 @@ export class ReplyEditEventWaMessageUsecase {
 
     const event = await this.deps.eventRepository.findById(parsed.id);
     if (!event) {
-      await this.reply(message, `Event dengan id ${parsed.id} tidak ditemukan.`);
+      await this.reply(message, `Event dengan id \`${parsed.id}\` tidak ditemukan.`);
       return false;
     }
 
