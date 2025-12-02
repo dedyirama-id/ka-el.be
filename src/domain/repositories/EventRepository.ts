@@ -7,4 +7,5 @@ export interface EventRepository {
   findAvailable(limit?: number): Promise<Event[]>;
   findByIds(ids: number[]): Promise<Event[]>;
   findById(id: number): Promise<Event | null>;
+  deleteById(id: number): Promise<boolean>;
 }

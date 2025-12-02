@@ -16,6 +16,7 @@ import type { ReplyEditEventWaMessageUsecase } from "@/application/usecases/Repl
 import { logger } from "@/commons/logger";
 import type { ReplyListEventWaMessageUsecase } from "@/application/usecases/ReplyListEventWaMessageUsecase";
 import type { ReplyShowEventWaMessageUsecase } from "@/application/usecases/ReplyShowEventWaMessageUsecase";
+import type { ReplyRemoveEventWaMessageUsecase } from "@/application/usecases/ReplyRemoveEventWaMessageUsecase";
 
 type Deps = {
   receiveWaMessageUsecase: ReceiveWaMessageUsecase;
@@ -32,6 +33,7 @@ type Deps = {
   deleteUserUseCase: DeleteUserUseCase;
   replyListEventWaMessageUsecase: ReplyListEventWaMessageUsecase;
   replyShowEventWaMessageUsecase: ReplyShowEventWaMessageUsecase;
+  replyRemoveEventWaMessageUsecase: ReplyRemoveEventWaMessageUsecase;
 };
 
 export class WebhookController {
@@ -76,6 +78,9 @@ export class WebhookController {
         break;
       case "@show_event":
         await this.deps.replyShowEventWaMessageUsecase.execute(message);
+        break;
+      case "@remove_event":
+        await this.deps.replyRemoveEventWaMessageUsecase.execute(message);
         break;
       case "add_event":
         await this.deps.replyEventWaMessageUsecase.execute(message);
