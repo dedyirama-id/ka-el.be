@@ -96,8 +96,8 @@ model EventTag {
   eventId Int
   tagId   Int
 
-  event Event @relation(fields: [eventId], references: [id])
-  tag   Tag   @relation(fields: [tagId], references: [id])
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([eventId, tagId])
   @@map("event_tags")
@@ -108,7 +108,7 @@ model UserTag {
   tagId  Int
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tag  Tag  @relation(fields: [tagId], references: [id])
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([userId, tagId])
   @@map("user_tags")
