@@ -22,6 +22,13 @@ export class ReplyKaelWaMessageUsecase {
       messageContent,
       message.chatType,
     );
+    await this.deps.messageRepository.create({
+      id: this.deps.idGenerator.generateId(),
+      phoneNumber: message.from,
+      role: "system",
+      content: messageSent.text,
+      meta: { id: messageSent.id, text: messageSent.text },
+    });
     return messageSent;
   }
 }

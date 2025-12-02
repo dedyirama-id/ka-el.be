@@ -41,7 +41,12 @@ export class ReplyEventWaMessageUsecase {
     const user = await this.deps.userRepository.findByPhone(message.from);
     if (user && user.isLoggedIn()) {
       const messageContent = this.deps.messageGenerator.generateNewEventMessage(event);
-      await this.deps.whatsappService.sendToChat(message.from, messageContent, message.chatType);
+      const messageSent = await this.deps.whatsappService.sendToChat(
+        message.from,
+        messageContent,
+        message.chatType,
+      );
+      await this.saveSystemMessage(message.from, messageSent.text, messageSent.id);
     }
 
     const relatedUsers = await this.deps.userRepository.findByTags(
@@ -53,17 +58,19 @@ export class ReplyEventWaMessageUsecase {
 
       const messageContent = this.deps.messageGenerator.generateNewEventNotificationMessage(event);
       if (message.chatType === "personal") {
-        await this.deps.whatsappService.sendToChat(
+        const introSent = await this.deps.whatsappService.sendToChat(
           relatedUser.phoneE164,
           `👋🏻 Hi, ${relatedUser.name}! Ada event baru nih...`,
           message.chatType,
         );
+        await this.saveSystemMessage(relatedUser.phoneE164, introSent.text, introSent.id);
 
-        await this.deps.whatsappService.sendToChat(
+        const messageSent = await this.deps.whatsappService.sendToChat(
           relatedUser.phoneE164,
           messageContent,
           message.chatType,
         );
+        await this.saveSystemMessage(relatedUser.phoneE164, messageSent.text, messageSent.id);
       }
     }
 
@@ -72,5 +79,15 @@ export class ReplyEventWaMessageUsecase {
 
   toTitleCase(str: string) {
     return str.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+  }
+
+  private async saveSystemMessage(to: string, content: string, id: string) {
+    await this.deps.messageRepository.create({
+      id: this.deps.idGenerator.generateId(),
+      phoneNumber: to,
+      role: "system",
+      content,
+      meta: { id, text: content },
+    });
   }
 }

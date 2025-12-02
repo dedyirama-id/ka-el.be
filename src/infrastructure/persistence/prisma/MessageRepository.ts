@@ -28,4 +28,14 @@ export class PrismaMessageRepository implements MessageRepository {
     });
     return toDomainMessage(row);
   }
+
+  async findRecentByPhone(phoneNumber: string, limit = 20): Promise<Message[]> {
+    const rows = await this.db.message.findMany({
+      where: { phoneNumber },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+
+    return rows.reverse().map(toDomainMessage);
+  }
 }

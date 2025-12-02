@@ -27,17 +27,23 @@ export class ReplyRegisterWaMessageUsecase {
         `Gunakan perintah \`@login\` untuk login ke akunmu*`,
       ].join("\n");
 
-      await this.deps.whatsappService.sendToChat(message.from, messageContent, message.chatType);
+      const messageSent = await this.deps.whatsappService.sendToChat(
+        message.from,
+        messageContent,
+        message.chatType,
+      );
+      await this.saveSystemMessage(message.from, messageSent.text, messageSent.id);
 
       return false;
     }
 
     if (!normalizedName) {
-      await this.deps.whatsappService.sendToChat(
+      const messageSent = await this.deps.whatsappService.sendToChat(
         message.from,
         "Maaf, format pendaftaran kamu salah. Gunakan `@register <nama>`",
         message.chatType,
       );
+      await this.saveSystemMessage(message.from, messageSent.text, messageSent.id);
 
       return false;
     }
@@ -50,12 +56,27 @@ export class ReplyRegisterWaMessageUsecase {
     });
 
     let messageContent = this.deps.messageGenerator.generateOnboardingMessage(user.name);
-    await this.deps.whatsappService.sendToChat(message.from, messageContent, message.chatType);
+    const messageSent = await this.deps.whatsappService.sendToChat(
+      message.from,
+      messageContent,
+      message.chatType,
+    );
+    await this.saveSystemMessage(message.from, messageSent.text, messageSent.id);
 
     return true;
   }
 
   toTitleCase(str: string) {
     return str.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+  }
+
+  private async saveSystemMessage(to: string, content: string, id: string) {
+    await this.deps.messageRepository.create({
+      id: this.deps.idGenerator.generateId(),
+      phoneNumber: to,
+      role: "system",
+      content,
+      meta: { id, text: content },
+    });
   }
 }
