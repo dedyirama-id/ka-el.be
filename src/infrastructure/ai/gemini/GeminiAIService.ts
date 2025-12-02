@@ -1,6 +1,6 @@
 import { env } from "@/commons/config/env";
 import { Event } from "@/domain/entities/Event";
-import type { AIService } from "@/domain/Services/AIService";
+import type { AIService, SearchableEvent } from "@/domain/Services/AIService";
 import { GoogleGenAI } from "@google/genai";
 import { parsedEventSchema, type ParsedEventDto } from "../ParsedEventSchema";
 import { InvariantError } from "@/commons/exceptions/InvariantError";
@@ -9,6 +9,7 @@ import { Intent } from "@/domain/entities/Intent";
 import { parsedIntentSchema } from "../ParsedIntent";
 import { parsedTagsSchema } from "../ParsedTags";
 import { parsedSearchQueriesSchema } from "../ParsedSearchQueries";
+import { parsedEventSearchResultSchema } from "../ParsedEventSearchResult";
 
 export class GeminiAIService implements AIService {
   private readonly ai;
@@ -150,8 +151,15 @@ export class GeminiAIService implements AIService {
       model: "gemini-2.0-flash-001",
       contents: prompt,
       config: {
-        systemInstruction:
-          "You are a data extractor tool. Extract the raw data to given schema. Only respond with json. Make sure to identify user intent accurately based on the message content. Distinguish between service intent and event intent. If the message indicates a request to register, update profile, or inquire about user-specific information, classify it as a service intent and user 'general' intent. If the message discusses events, bootcamps, internships, or opportunities, classify it as an event intent.",
+        systemInstruction: [
+          "You are a data extractor tool. Extract data to the given schema and respond ONLY with JSON.",
+          "Classify intent using these Bahasa-first rules:",
+          '- intent = "search_event" if the user wants to mencari/cari/search/find/lihat/rekomendasi event/lomba/bootcamp/magang/beasiswa/pendanaan/opportunity. Contoh: "ada event data science?", "cari lomba UI/UX", "butuh rekomendasi magang backend".',
+          '- intent = "add_event" if the user is menyampaikan/mendaftarkan/mempublikasikan event atau memberikan detail event (judul, tanggal, harga, penyelenggara, link, deskripsi, lokasi, benefit). Anggap add_event meskipun detail belum lengkap.',
+          '- intent = "general" untuk sapaan, small talk, pertanyaan tentang bot, atau topik di luar pencarian/penambahan event.',
+          "Set `value` ke bagian permintaan yang relevan: untuk search gunakan teks query ringkas; untuk add_event ringkas isi event yang disebut; untuk general isi ringkasan niat user.",
+          "Jangan pernah kembalikan intent di luar schema.",
+        ].join("\n"),
         responseMimeType: "application/json",
         responseSchema: z.toJSONSchema(parsedIntentSchema),
       },
@@ -201,5 +209,51 @@ export class GeminiAIService implements AIService {
 
     const parsed = parsedSearchQueriesSchema.parse(JSON.parse(result.text as string));
     return parsed.queries;
+  }
+
+  async findMatchingEventIds(query: string, events: SearchableEvent[]): Promise<number[]> {
+    const prompt = query.trim();
+    if (!prompt) {
+      throw new Error("Search query for Gemini AI must not be empty");
+    }
+    if (events.length === 0) {
+      return [];
+    }
+
+    const condensedEvents = events.map((event) => ({
+      id: event.id,
+      title: event.title,
+      description: this.truncate(event.description),
+      organizer: event.organizer,
+      startDate: event.startDate.toISOString().split("T")[0],
+      endDate: event.endDate.toISOString().split("T")[0],
+      tags: event.tags,
+      priceRange: `${event.priceMin}-${event.priceMax}`,
+    }));
+
+    const result = await this.ai.models.generateContent({
+      model: "gemini-2.0-flash-001",
+      contents: [
+        "Tentukan event yang paling relevan dengan permintaan pengguna berdasarkan daftar event berikut.",
+        `Query pengguna: ${prompt}`,
+        "Urutkan ID event dari yang paling relevan. Maksimal rekomendasikan 3 event. Jika tidak ada yang cocok, kembalikan array kosong.",
+        `Daftar event:\n${JSON.stringify(condensedEvents, null, 2)}`,
+      ].join("\n\n"),
+      config: {
+        systemInstruction:
+          "Kamu adalah asisten pencarian event. Pilih ID event yang paling sesuai dengan query pengguna hanya dari daftar yang diberikan. Pertimbangkan judul, deskripsi, penyelenggara, tanggal, dan tags. Balas dalam format JSON sesuai schema. Jika tidak ada yang relevan, kembalikan array kosong.",
+        responseMimeType: "application/json",
+        responseSchema: z.toJSONSchema(parsedEventSearchResultSchema),
+      },
+    });
+
+    const parsed = parsedEventSearchResultSchema.parse(JSON.parse(result.text as string));
+    return parsed.eventIds;
+  }
+
+  private truncate(text: string | null, maxLength = 300): string | null {
+    if (!text) return null;
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, maxLength)}...`;
   }
 }

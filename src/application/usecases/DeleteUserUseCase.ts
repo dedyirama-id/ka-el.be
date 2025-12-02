@@ -55,9 +55,8 @@ export class DeleteUserUseCase {
         "Akunmu berhasil terhapus secara permanen jika ingin membuat akun kembali kirim pesan @register",
         message.chatType,
       );
-    } 
-    // eslint-disable-next-line no-unused-vars
-    catch (e) {
+    } catch (e) {
+      // eslint-disable-next-line no-unused-vars
       await this.deps.whatsappService.sendToChat(
         message.from,
         "Penghapusan gagal dilakukan, periksa kode token yang kamu kirimkan",

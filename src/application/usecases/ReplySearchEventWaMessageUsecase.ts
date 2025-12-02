@@ -1,12 +1,13 @@
+import type { Event } from "@/domain/entities/Event";
+import type { WaMessage } from "@/domain/entities/WaMessage";
 import type { EventRepository } from "@/domain/repositories/EventRepository";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { TagRepository } from "@/domain/repositories/TagRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
-import type { AIService } from "@/domain/Services/AIService";
+import type { AIService, SearchableEvent } from "@/domain/Services/AIService";
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
-import type { WhatsappService } from "@/domain/Services/WhatsappService";
 import type { MessageGenerator } from "../../domain/Services/MessageGenerator";
-import type { WaMessage } from "@/domain/entities/WaMessage";
+import type { WhatsappService } from "@/domain/Services/WhatsappService";
 
 type Deps = {
   whatsappService: WhatsappService;
@@ -27,10 +28,34 @@ export class ReplySearchEventWaMessageUsecase {
     if (!user || !user.isLoggedIn()) {
       return false;
     }
-    const queries = await this.deps.aiService.parseSearchQuery(message.text);
-    const events = await this.deps.eventRepository.search(queries);
 
-    if (events.length === 0) {
+    const availableEvents = await this.deps.eventRepository.findAvailable();
+    if (availableEvents.length === 0) {
+      await this.deps.whatsappService.sendToChat(
+        user.phoneE164,
+        `Maaf, saat ini belum ada event yang tersedia`,
+        message.chatType,
+      );
+      return false;
+    }
+
+    const eventsForAi: SearchableEvent[] = availableEvents
+      .filter((event) => event.id !== undefined)
+      .map((event) => ({
+        id: event.id as number,
+        title: event.title,
+        description: event.description,
+        organizer: event.organizer,
+        tags: event.tags.map((tag) => tag.name),
+        startDate: event.startDate,
+        endDate: event.endDate,
+        priceMin: event.priceMin,
+        priceMax: event.priceMax,
+      }));
+
+    const eventIds = await this.deps.aiService.findMatchingEventIds(message.text, eventsForAi);
+
+    if (eventIds.length === 0) {
       await this.deps.whatsappService.sendToChat(
         user.phoneE164,
         `Maaf saat ini event yang kamu cari tidak ada`,
@@ -39,12 +64,27 @@ export class ReplySearchEventWaMessageUsecase {
       return false;
     }
 
+    const matchedEvents = await this.deps.eventRepository.findByIds(eventIds);
+    if (matchedEvents.length === 0) {
+      await this.deps.whatsappService.sendToChat(
+        user.phoneE164,
+        `Maaf saat ini event yang kamu cari tidak ada`,
+        message.chatType,
+      );
+      return false;
+    }
+
+    const eventsById = new Map(matchedEvents.map((event) => [event.id as number, event]));
+    const orderedEvents = eventIds
+      .map((id) => eventsById.get(id))
+      .filter((event): event is Event => Boolean(event));
+
     await this.deps.whatsappService.sendToChat(
       user.phoneE164,
       `Hi, ini hasil pencarianmu`,
       message.chatType,
     );
-    for (const event of events) {
+    for (const event of orderedEvents) {
       const messageContent = this.deps.messageGenerator.generateEventMessage(event);
       await this.deps.whatsappService.sendToChat(user.phoneE164, messageContent, message.chatType);
     }

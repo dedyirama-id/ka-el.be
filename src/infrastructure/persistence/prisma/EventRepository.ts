@@ -92,4 +92,52 @@ export class PrismaEventRepository implements EventRepository {
       }),
     );
   }
+
+  async findAvailable(limit = 20): Promise<Event[]> {
+    const events = await this.db.event.findMany({
+      where: {
+        endDate: { gte: new Date() },
+      },
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+      orderBy: [{ startDate: "asc" }, { id: "asc" }],
+      take: limit,
+    });
+
+    return events.map((event) =>
+      Event.fromPersistence({
+        ...event,
+        tags: event.tags.map((et) => Tag.fromPersistence(et.tag)),
+      }),
+    );
+  }
+
+  async findByIds(ids: number[]): Promise<Event[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const events = await this.db.event.findMany({
+      where: { id: { in: ids } },
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+
+    return events.map((event) =>
+      Event.fromPersistence({
+        ...event,
+        tags: event.tags.map((et) => Tag.fromPersistence(et.tag)),
+      }),
+    );
+  }
 }
