@@ -37,7 +37,6 @@ export class WebhookController {
 
     const payload = ReceiveWaSchema.parse(body);
     const message = await this.deps.receiveWaMessageUsecase.execute(new WaMessage(payload));
-    console.log("🚀 ~ WebhookController ~ receiveWaMessage ~ message:", message)
 
     switch (message.intent) {
       case "@ping":
