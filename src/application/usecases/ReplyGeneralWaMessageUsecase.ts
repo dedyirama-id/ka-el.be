@@ -4,6 +4,8 @@ import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { AIService, ChatMessage, UserContext } from "@/domain/Services/AIService";
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
+import { logger } from "@/commons/logger";
+import { replyToUser } from "./utils/messageReply";
 
 type Deps = {
   userRepository: UserRepository;
@@ -17,40 +19,42 @@ export class ReplyGeneralWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
   async execute(message: WaMessage): Promise<boolean> {
-    const user = await this.deps.userRepository.findByPhone(message.from);
-    if (!user || !user.isLoggedIn()) {
+    try {
+      const user = await this.deps.userRepository.findByPhone(message.from);
+      if (!user) {
+        await replyToUser(
+          this.deps,
+          message,
+          "Nomor WA ini belum terdaftar. Gunakan `@register <nama>` untuk membuat akun.",
+          { save: false },
+        );
+        return false;
+      }
+      if (!user.isLoggedIn()) {
+        await replyToUser(this.deps, message, "Kamu belum login. Gunakan perintah @login dulu ya.");
+        return false;
+      }
+
+      const history = await this.loadHistory(message.from);
+      const userContext: UserContext = { name: user.name, profile: user.profile ?? null };
+      const replyMessage = await this.deps.aiService.replyGeneralMessage(
+        message.text,
+        history,
+        userContext,
+      );
+      await replyToUser(this.deps, message, replyMessage);
+
+      return true;
+    } catch (error) {
+      logger.error("Failed to process general reply", { error, from: message.from });
+      await replyToUser(
+        this.deps,
+        message,
+        "Maaf, terjadi kesalahan saat memproses pesanmu. Coba lagi beberapa saat lagi ya.",
+        { save: false },
+      );
       return false;
     }
-
-    const history = await this.loadHistory(message.from);
-    const userContext: UserContext = { name: user.name, profile: user.profile ?? null };
-    const replyMessage = await this.deps.aiService.replyGeneralMessage(
-      message.text,
-      history,
-      userContext,
-    );
-    const messageSent = await this.deps.whatsappService.sendToChat(
-      message.from,
-      replyMessage,
-      message.chatType,
-    );
-    const messageId = this.deps.idGenerator.generateId();
-    await this.deps.messageRepository.create({
-      id: messageId,
-      phoneNumber: message.from,
-      role: "system",
-      content: messageSent.text,
-      meta: {
-        id: messageSent.id,
-        text: messageSent.text,
-      },
-    });
-
-    return true;
-  }
-
-  toTitleCase(str: string) {
-    return str.replace(/(^|\s)\S/g, (c) => c.toUpperCase());
   }
 
   private async loadHistory(phoneNumber: string): Promise<ChatMessage[]> {

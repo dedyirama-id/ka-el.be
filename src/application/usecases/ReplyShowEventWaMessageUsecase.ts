@@ -5,6 +5,8 @@ import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 import type { MessageGenerator } from "@/domain/Services/MessageGenerator";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
+import { logger } from "@/commons/logger";
+import { replyToUser } from "./utils/messageReply";
 
 type Deps = {
   whatsappService: WhatsappService;
@@ -19,42 +21,59 @@ export class ReplyShowEventWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
   async execute(message: WaMessage): Promise<boolean> {
-    const user = await this.deps.userRepository.findByPhone(message.from);
-    if (!user) {
-      await this.reply(
+    try {
+      const user = await this.deps.userRepository.findByPhone(message.from);
+      if (!user) {
+        await replyToUser(
+          this.deps,
+          message,
+          "Fitur ini hanya dapat diakses oleh pengguna yang terdaftar. Silakan daftar dan login terlebih dahulu.",
+          { save: false },
+        );
+        return false;
+      }
+      if (!user.isLoggedIn()) {
+        await replyToUser(
+          this.deps,
+          message,
+          "Fitur ini hanya dapat diakses oleh pengguna yang sudah login. Silakan login terlebih dahulu.",
+        );
+        return false;
+      }
+
+      const requestedId = this.parseRequestedId(message.text);
+      if (!requestedId) {
+        await replyToUser(
+          this.deps,
+          message,
+          "Gunakan format `@show_event <id>` untuk melihat detail event.",
+        );
+        return false;
+      }
+
+      const event = await this.deps.eventRepository.findById(requestedId);
+      if (!event) {
+        await replyToUser(
+          this.deps,
+          message,
+          `Event dengan id \`${requestedId}\` tidak ditemukan.`,
+        );
+        return false;
+      }
+
+      const content = this.deps.messageGenerator.generateEventMessage(event);
+      await replyToUser(this.deps, message, content, { to: user.phoneE164 });
+      return true;
+    } catch (error) {
+      logger.error("Failed to process show_event command", { error, from: message.from });
+      await replyToUser(
+        this.deps,
         message,
-        "Fitur ini hanya dapat diakses oleh pengguna yang terdaftar. Silakan daftar dan login terlebih dahulu.",
+        "Maaf, terjadi kesalahan saat mengambil detail event. Coba lagi sebentar lagi ya.",
+        { save: false },
       );
       return false;
     }
-    if (!user.isLoggedIn()) {
-      await this.reply(
-        message,
-        "Fitur ini hanya dapat diakses oleh pengguna yang sudah login. Silakan login terlebih dahulu.",
-      );
-      return false;
-    }
-
-    const requestedId = this.parseRequestedId(message.text);
-    if (!requestedId) {
-      await this.reply(message, "Gunakan format `@show_event <id>` untuk melihat detail event.");
-      return false;
-    }
-
-    const event = await this.deps.eventRepository.findById(requestedId);
-    if (!event) {
-      await this.reply(message, `Event dengan id \`${requestedId}\` tidak ditemukan.`);
-      return false;
-    }
-
-    const content = this.deps.messageGenerator.generateEventMessage(event);
-    const sent = await this.deps.whatsappService.sendToChat(
-      user.phoneE164,
-      content,
-      message.chatType,
-    );
-    await this.saveSystemMessage(user.phoneE164, sent.text, sent.id);
-    return true;
   }
 
   private parseRequestedId(text: string): number | null {
@@ -62,24 +81,5 @@ export class ReplyShowEventWaMessageUsecase {
     if (!match) return null;
     const parsed = Number(match[1]);
     return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
-  }
-
-  private async reply(message: WaMessage, content: string) {
-    const sent = await this.deps.whatsappService.sendToChat(
-      message.from,
-      content,
-      message.chatType,
-    );
-    await this.saveSystemMessage(message.from, sent.text, sent.id);
-  }
-
-  private async saveSystemMessage(to: string, content: string, id: string) {
-    await this.deps.messageRepository.create({
-      id: this.deps.idGenerator.generateId(),
-      phoneNumber: to,
-      role: "system",
-      content,
-      meta: { id, text: content },
-    });
   }
 }

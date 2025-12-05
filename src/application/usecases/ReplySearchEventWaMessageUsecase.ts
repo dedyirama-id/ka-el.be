@@ -13,6 +13,8 @@ import type {
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 import type { MessageGenerator } from "../../domain/Services/MessageGenerator";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
+import { logger } from "@/commons/logger";
+import { replyToUser } from "./utils/messageReply";
 
 type Deps = {
   whatsappService: WhatsappService;
@@ -29,88 +31,84 @@ export class ReplySearchEventWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
   async execute(message: WaMessage): Promise<boolean> {
-    const user = await this.deps.userRepository.findByPhone(message.from);
-    if (!user || !user.isLoggedIn()) {
+    try {
+      const user = await this.deps.userRepository.findByPhone(message.from);
+      if (!user) {
+        await replyToUser(
+          this.deps,
+          message,
+          "Nomor WA ini belum terdaftar. Gunakan `@register <nama>` untuk membuat akun.",
+          { save: false },
+        );
+        return false;
+      }
+      if (!user.isLoggedIn()) {
+        await replyToUser(this.deps, message, "Kamu belum login. Gunakan perintah @login dulu ya.");
+        return false;
+      }
+
+      const availableEvents = await this.deps.eventRepository.findAvailable();
+      if (availableEvents.length === 0) {
+        await replyToUser(this.deps, message, "Maaf, saat ini belum ada event yang tersedia");
+        return false;
+      }
+
+      const history = await this.loadHistory(message.from);
+      const eventsForAi: SearchableEvent[] = availableEvents
+        .filter((event) => event.id !== undefined)
+        .map((event) => ({
+          id: event.id as number,
+          title: event.title,
+          description: event.description,
+          organizer: event.organizer,
+          tags: event.tags.map((tag) => tag.name),
+          startDate: event.startDate,
+          endDate: event.endDate,
+          priceMin: event.priceMin,
+          priceMax: event.priceMax,
+        }));
+
+      const userContext: UserContext = { name: user.name, profile: user.profile ?? null };
+      const eventIds = await this.deps.aiService.findMatchingEventIds(
+        message.text,
+        eventsForAi,
+        history,
+        userContext,
+      );
+
+      if (eventIds.length === 0) {
+        await replyToUser(this.deps, message, "Maaf saat ini event yang kamu cari tidak ada");
+        return false;
+      }
+
+      const matchedEvents = await this.deps.eventRepository.findByIds(eventIds);
+      if (matchedEvents.length === 0) {
+        await replyToUser(this.deps, message, "Maaf saat ini event yang kamu cari tidak ada");
+        return false;
+      }
+
+      const eventsById = new Map(matchedEvents.map((event) => [event.id as number, event]));
+      const orderedEvents = eventIds
+        .map((id) => eventsById.get(id))
+        .filter((event): event is Event => Boolean(event));
+
+      await replyToUser(this.deps, message, `Hi, ini hasil pencarianmu!`);
+      for (const event of orderedEvents) {
+        const messageContent = this.deps.messageGenerator.generateEventMessage(event);
+        await replyToUser(this.deps, message, messageContent);
+      }
+
+      return true;
+    } catch (error) {
+      logger.error("Failed to process search_event command", { error, from: message.from });
+      await replyToUser(
+        this.deps,
+        message,
+        "Maaf, terjadi kesalahan saat mencari event. Coba lagi sebentar lagi ya.",
+        { save: false },
+      );
       return false;
     }
-
-    const availableEvents = await this.deps.eventRepository.findAvailable();
-    if (availableEvents.length === 0) {
-      const messageSent = await this.deps.whatsappService.sendToChat(
-        user.phoneE164,
-        `Maaf, saat ini belum ada event yang tersedia`,
-        message.chatType,
-      );
-      await this.saveSystemMessage(user.phoneE164, messageSent.text, messageSent.id);
-      return false;
-    }
-
-    const history = await this.loadHistory(message.from);
-    const eventsForAi: SearchableEvent[] = availableEvents
-      .filter((event) => event.id !== undefined)
-      .map((event) => ({
-        id: event.id as number,
-        title: event.title,
-        description: event.description,
-        organizer: event.organizer,
-        tags: event.tags.map((tag) => tag.name),
-        startDate: event.startDate,
-        endDate: event.endDate,
-        priceMin: event.priceMin,
-        priceMax: event.priceMax,
-      }));
-
-    const userContext: UserContext = { name: user.name, profile: user.profile ?? null };
-    const eventIds = await this.deps.aiService.findMatchingEventIds(
-      message.text,
-      eventsForAi,
-      history,
-      userContext,
-    );
-
-    if (eventIds.length === 0) {
-      const messageSent = await this.deps.whatsappService.sendToChat(
-        user.phoneE164,
-        `Maaf saat ini event yang kamu cari tidak ada`,
-        message.chatType,
-      );
-      await this.saveSystemMessage(user.phoneE164, messageSent.text, messageSent.id);
-      return false;
-    }
-
-    const matchedEvents = await this.deps.eventRepository.findByIds(eventIds);
-    if (matchedEvents.length === 0) {
-      const messageSent = await this.deps.whatsappService.sendToChat(
-        user.phoneE164,
-        `Maaf saat ini event yang kamu cari tidak ada`,
-        message.chatType,
-      );
-      await this.saveSystemMessage(user.phoneE164, messageSent.text, messageSent.id);
-      return false;
-    }
-
-    const eventsById = new Map(matchedEvents.map((event) => [event.id as number, event]));
-    const orderedEvents = eventIds
-      .map((id) => eventsById.get(id))
-      .filter((event): event is Event => Boolean(event));
-
-    const greetingSent = await this.deps.whatsappService.sendToChat(
-      user.phoneE164,
-      `Hi, ini hasil pencarianmu!`,
-      message.chatType,
-    );
-    await this.saveSystemMessage(user.phoneE164, greetingSent.text, greetingSent.id);
-    for (const event of orderedEvents) {
-      const messageContent = this.deps.messageGenerator.generateEventMessage(event);
-      const messageSent = await this.deps.whatsappService.sendToChat(
-        user.phoneE164,
-        messageContent,
-        message.chatType,
-      );
-      await this.saveSystemMessage(user.phoneE164, messageSent.text, messageSent.id);
-    }
-
-    return true;
   }
 
   toTitleCase(str: string) {
@@ -123,15 +121,5 @@ export class ReplySearchEventWaMessageUsecase {
       role: msg.role === "assistant" ? "assistant" : msg.role === "tool" ? "system" : msg.role,
       content: msg.content,
     }));
-  }
-
-  private async saveSystemMessage(to: string, content: string, id: string) {
-    await this.deps.messageRepository.create({
-      id: this.deps.idGenerator.generateId(),
-      phoneNumber: to,
-      role: "system",
-      content,
-      meta: { id, text: content },
-    });
   }
 }
