@@ -27,7 +27,7 @@ export class ReplyRegisterWaMessageUsecase {
       if (registeredUser) {
         const messageContent = [
           `Nomor WA kamu sudah terdaftar sebagai *${this.toTitleCase(registeredUser.name)}.*`,
-          `Gunakan perintah \`@login\` untuk login ke akunmu*`,
+          `Gunakan perintah \`@login\` untuk login ke akunmu.`,
         ].join("\n");
 
         await replyToUser(this.deps, message, messageContent);

@@ -6,13 +6,14 @@ export class WaMessageGenerator implements MessageGenerator {
   generateWellcomeMessage(): string {
     return [
       "📚 *SELAMAT DATANG DI KA'EL* 📚",
+      "> Saat ini anda berinteraksi dengan AI. ",
+      "",
       "Ka'el adalah layanan cerdas berbasis AI yang akan membantu kamu menemukan berbagai event, lomba, magang, hingga pendanaan yang sesuai dengan minat dan profilmu.\n",
       "Temukan peluang pengembangan diri dengan cara yang lebih mudah, cepat, dan personal!",
       "",
-      "> Saat ini anda berinteraksi dengan AI. ",
-      "> Untuk mendaftar, kirimkan pesan `@register <nama>`",
-      "> Untuk mengisi profil kamu, kirimkan pesan`@profile <deskripsi diri>`",
-      "> Untuk mencari event, jelaskan event yang ingin kamu cari, misal: `Saya mencari lomba programming`",
+      "1. Untuk mendaftar, kirimkan pesan: `@register <nama>`",
+      "2. Untuk mengisi profil kamu, kirimkan pesan:  `@profile <deskripsi diri>`",
+      "3. Untuk mencari event, jelaskan event yang ingin kamu cari, misal: `Saya mencari lomba programming`",
     ].join("\n");
   }
   generateNewEventMessage(event: Event): string {
