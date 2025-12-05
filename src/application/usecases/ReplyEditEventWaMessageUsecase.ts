@@ -6,6 +6,8 @@ import type { UserRepository } from "@/domain/repositories/UserRepository";
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 import type { MessageGenerator } from "@/domain/Services/MessageGenerator";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
+import { logger } from "@/commons/logger";
+import { replyToUser } from "./utils/messageReply";
 
 type Deps = {
   whatsappService: WhatsappService;
@@ -38,99 +40,107 @@ export class ReplyEditEventWaMessageUsecase {
   constructor(private readonly deps: Deps) {}
 
   async execute(message: WaMessage): Promise<boolean> {
-    const user = await this.deps.userRepository.findByPhone(message.from);
-    if (!user) {
+    try {
+      const user = await this.deps.userRepository.findByPhone(message.from);
+      if (!user) {
+        await this.reply(
+          message,
+          "Fitur ini hanya dapat diakses oleh admin yang terdaftar. Silakan daftar dan hubungi admin untuk mendapatkan akses.",
+          false,
+        );
+        return false;
+      }
+      if (!user.isLoggedIn()) {
+        await this.reply(
+          message,
+          "Fitur ini hanya dapat diakses oleh admin yang sudah login. Silakan login terlebih dahulu.",
+        );
+        return false;
+      }
+      if (!user.isAdmin()) {
+        await this.reply(message, "Maaf, hanya admin yang dapat menggunakan perintah @edit_event.");
+        return false;
+      }
+
+      const requestedId = this.extractRequestedId(message.text);
+      if (requestedId !== null) {
+        const event = await this.deps.eventRepository.findById(requestedId);
+        if (!event) {
+          await this.reply(message, `Event dengan id \`${requestedId}\` tidak ditemukan.`);
+          return false;
+        }
+        await this.reply(message, this.formatExistingEventPayload(event));
+        return true;
+      }
+
+      const parsed = this.parsePayload(message.text);
+      if (!parsed.id) {
+        await this.reply(
+          message,
+          "Gunakan format berikut untuk mengedit event: `@edit_event <id>`",
+        );
+        return false;
+      }
+
+      if (parsed.errors.length > 0) {
+        const response = [
+          "Format edit event tidak valid:",
+          ...parsed.errors.map((err) => `- ${err}`),
+          "",
+          ...this.formatHint(),
+        ].join("\n");
+        await this.reply(message, response);
+        return false;
+      }
+
+      const updateKeys = Object.keys(parsed.updates);
+      if (updateKeys.length === 0) {
+        await this.reply(
+          message,
+          [
+            "Tidak ada kolom yang dapat diperbarui. Sertakan setidaknya satu kolom.",
+            ...this.formatHint(),
+          ].join("\n"),
+        );
+        return false;
+      }
+
+      const event = await this.deps.eventRepository.findById(parsed.id);
+      if (!event) {
+        await this.reply(message, `Event dengan id \`${parsed.id}\` tidak ditemukan.`);
+        return false;
+      }
+
+      let updatedEvent: Event;
+      try {
+        updatedEvent = Event.fromPersistence({
+          ...event.toProps(),
+          ...parsed.updates,
+          raw: parsed.rawPayload || event.raw,
+          updatedAt: new Date(),
+        });
+      } catch (error) {
+        await this.reply(
+          message,
+          `Gagal memperbarui event karena data tidak valid: ${(error as Error).message}`,
+        );
+        return false;
+      }
+
+      const savedEvent = await this.deps.eventRepository.save(updatedEvent);
+      const details = this.deps.messageGenerator.generateEventMessage(savedEvent);
+      const content = [`✅ Event #${savedEvent.id} berhasil diperbarui.`, details].join("\n\n");
+      await replyToUser(this.deps, message, content);
+      return true;
+    } catch (error) {
+      logger.error("Failed to process edit_event command", { error, from: message.from });
       await this.reply(
         message,
-        "Fitur ini hanya dapat diakses oleh admin yang terdaftar. Silakan daftar dan hubungi admin untuk mendapatkan akses.",
+        "Maaf, terjadi kesalahan saat memperbarui event. Coba lagi sebentar lagi ya.",
         false,
       );
       return false;
     }
-    if (!user.isLoggedIn()) {
-      await this.reply(
-        message,
-        "Fitur ini hanya dapat diakses oleh admin yang sudah login. Silakan login terlebih dahulu.",
-      );
-      return false;
-    }
-    if (!user.isAdmin()) {
-      await this.reply(message, "Maaf, hanya admin yang dapat menggunakan perintah @edit_event.");
-      return false;
-    }
-
-    const requestedId = this.extractRequestedId(message.text);
-    if (requestedId !== null) {
-      const event = await this.deps.eventRepository.findById(requestedId);
-      if (!event) {
-        await this.reply(message, `Event dengan id \`${requestedId}\` tidak ditemukan.`);
-        return false;
-      }
-      await this.reply(message, this.formatExistingEventPayload(event));
-      return true;
-    }
-
-    const parsed = this.parsePayload(message.text);
-    if (!parsed.id) {
-      await this.reply(message, "Gunakan format berikut untuk mengedit event: `@edit_event <id>`");
-      return false;
-    }
-
-    if (parsed.errors.length > 0) {
-      const response = [
-        "Format edit event tidak valid:",
-        ...parsed.errors.map((err) => `- ${err}`),
-        "",
-        ...this.formatHint(),
-      ].join("\n");
-      await this.reply(message, response);
-      return false;
-    }
-
-    const updateKeys = Object.keys(parsed.updates);
-    if (updateKeys.length === 0) {
-      await this.reply(
-        message,
-        [
-          "Tidak ada kolom yang dapat diperbarui. Sertakan setidaknya satu kolom.",
-          ...this.formatHint(),
-        ].join("\n"),
-      );
-      return false;
-    }
-
-    const event = await this.deps.eventRepository.findById(parsed.id);
-    if (!event) {
-      await this.reply(message, `Event dengan id \`${parsed.id}\` tidak ditemukan.`);
-      return false;
-    }
-
-    let updatedEvent: Event;
-    try {
-      updatedEvent = Event.fromPersistence({
-        ...event.toProps(),
-        ...parsed.updates,
-        raw: parsed.rawPayload || event.raw,
-        updatedAt: new Date(),
-      });
-    } catch (error) {
-      await this.reply(
-        message,
-        `Gagal memperbarui event karena data tidak valid: ${(error as Error).message}`,
-      );
-      return false;
-    }
-
-    const savedEvent = await this.deps.eventRepository.save(updatedEvent);
-    const details = this.deps.messageGenerator.generateEventMessage(savedEvent);
-    const content = [`✅ Event #${savedEvent.id} berhasil diperbarui.`, details].join("\n\n");
-    const sent = await this.deps.whatsappService.sendToChat(
-      message.from,
-      content,
-      message.chatType,
-    );
-    await this.saveSystemMessage(message.from, sent.text, sent.id);
-    return true;
   }
 
   private parsePayload(rawText: string): ParsedPayload {
@@ -304,24 +314,7 @@ export class ReplyEditEventWaMessageUsecase {
   }
 
   private async reply(message: WaMessage, content: string, saveHistory = true) {
-    const sent = await this.deps.whatsappService.sendToChat(
-      message.from,
-      content,
-      message.chatType,
-    );
-    if (saveHistory) {
-      await this.saveSystemMessage(message.from, sent.text, sent.id);
-    }
-  }
-
-  private async saveSystemMessage(to: string, content: string, id: string) {
-    await this.deps.messageRepository.create({
-      id: this.deps.idGenerator.generateId(),
-      phoneNumber: to,
-      role: "system",
-      content,
-      meta: { id, text: content },
-    });
+    await replyToUser(this.deps, message, content, { save: saveHistory });
   }
 
   private formatHint(): string[] {
