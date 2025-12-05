@@ -6,11 +6,13 @@ export class WaMessageGenerator implements MessageGenerator {
   generateWellcomeMessage(): string {
     return [
       "📚 *SELAMAT DATANG DI KA'EL* 📚",
-      "Ka'el adalah layanan cerdas yang membantu kamu menemukan berbagai event, lomba, magang, hingga pendanaan yang sesuai dengan minat dan profilmu.\n",
+      "Ka'el adalah layanan cerdas berbasis AI yang akan membantu kamu menemukan berbagai event, lomba, magang, hingga pendanaan yang sesuai dengan minat dan profilmu.\n",
       "Temukan peluang pengembangan diri dengan cara yang lebih mudah, cepat, dan personal!",
       "",
-      "> Saat ini anda berinteraksi dengan bot Ka'el. Sebelum menggunakan layanan, silahkan mendaftar akun dengan perintah berikut: ",
-      "> `@register <nama",
+      "> Saat ini anda berinteraksi dengan AI. ",
+      "> Untuk mendaftar, kirimkan pesan `@register <nama>`",
+      "> Untuk mengisi profil kamu, kirimkan pesan`@profile <deskripsi diri>`",
+      "> Untuk mencari event, jelaskan event yang ingin kamu cari, misal: `Saya mencari lomba programming`",
     ].join("\n");
   }
   generateNewEventMessage(event: Event): string {
@@ -48,8 +50,9 @@ export class WaMessageGenerator implements MessageGenerator {
     return [
       `*Selamat datang ${name}!*`,
       `Kamu sekarang dapat menggunakan layanan KA'EL. \n`,
-      `> 📌 Pastikan kamu memperbarui profile agar Ka'el dapat memberikan rekomendasi lomba yang sesuai dengan minatmu!`,
+      `> 📌 Pastikan kamu memperbarui profile agar Ka'el dapat memberikan rekomendasi lomba yang sesuai dengan minatmu secara otomatis!`,
       `> Kirimkan pesan \`@profile <deskripsi diri>\``,
+      `> Contoh: \`@profile mahasiswa sistem informasi ITS, saya tertarik dengan bisnis dan data. Saya ingin mengikuti lomba dan sedang mencari peluang beasiswa ke luar negeri.\``,
     ].join("\n");
   }
 
