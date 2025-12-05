@@ -1,7 +1,7 @@
 {
   "name": "ka-el.be",
   "private": true,
-  "version": "1.16.2",
+  "version": "1.16.3",
   "license": "UNLICENSED",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -1,3 +1,10 @@
+## [1.16.3](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.2...v1.16.3) (2025-12-05)
+
+
+### Bug Fixes
+
+* add error handling to all usecase ([2897ae0](https://github.com/dedyirama-id/ka-el.be/commit/2897ae015cb5cd455ea6aa72e30cdbbf311b68a9))
+
 ## [1.16.2](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.1...v1.16.2) (2025-12-02)
 
 
