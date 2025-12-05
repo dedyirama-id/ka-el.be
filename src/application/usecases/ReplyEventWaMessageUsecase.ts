@@ -4,7 +4,7 @@ import type { EventRepository } from "@/domain/repositories/EventRepository";
 import type { MessageRepository } from "@/domain/repositories/MessageRepository";
 import type { TagRepository } from "@/domain/repositories/TagRepository";
 import type { UserRepository } from "@/domain/repositories/UserRepository";
-import type { AIService } from "@/domain/Services/AIService";
+import type { AIService, RelatedUserCandidate } from "@/domain/Services/AIService";
 import type { IdGeneratorService } from "@/domain/Services/IdGeneratorService";
 import type { MessageGenerator } from "@/domain/Services/MessageGenerator";
 import type { WhatsappService } from "@/domain/Services/WhatsappService";
@@ -74,9 +74,21 @@ export class ReplyEventWaMessageUsecase {
         notifiedPhones.add(admin.phoneE164);
       }
 
-      const relatedUsers = await this.deps.userRepository.findByTags(
-        parsedEvent.tags.map((tag) => tag.name),
+      const users = await this.deps.userRepository.findAll();
+      const relatedCandidates: RelatedUserCandidate[] = users
+        .filter((candidate) => Boolean(candidate.id))
+        .map((candidate) => ({
+          id: candidate.id!,
+          name: candidate.name,
+          profile: candidate.profile ?? null,
+        }));
+
+      const relatedUserIds = await this.deps.aiService.findRelatedUserIdsForEvent(
+        event,
+        relatedCandidates,
       );
+
+      const relatedUsers = await this.deps.userRepository.findByIds(relatedUserIds);
 
       for (const relatedUser of relatedUsers) {
         if (notifiedPhones.has(relatedUser.phoneE164)) continue;

@@ -6,6 +6,8 @@ export interface UserRepository {
   findByPhone(phone: string): Promise<User | null>;
   updateProfile(userId: string, profile: string): Promise<User | null>;
   save(user: User): Promise<User>;
+  findAll(): Promise<User[]>;
+  findByIds(ids: string[]): Promise<User[]>;
   findByTags(tagNames: string[]): Promise<User[]>;
   findByRole(role: UserRole): Promise<User[]>;
   deleteAccount(deleteToken: string): Promise<void>;
