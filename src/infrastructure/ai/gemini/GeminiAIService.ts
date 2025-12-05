@@ -3,6 +3,7 @@ import { Event } from "@/domain/entities/Event";
 import type {
   AIService,
   ChatMessage,
+  RelatedUserCandidate,
   SearchableEvent,
   UserContext,
 } from "@/domain/Services/AIService";
@@ -15,6 +16,7 @@ import { parsedIntentSchema } from "../ParsedIntent";
 import { parsedTagsSchema } from "../ParsedTags";
 import { parsedSearchQueriesSchema } from "../ParsedSearchQueries";
 import { parsedEventSearchResultSchema } from "../ParsedEventSearchResult";
+import { parsedRelatedUserIdsSchema } from "../ParsedRelatedUserIds";
 
 export class GeminiAIService implements AIService {
   private readonly ai;
@@ -224,6 +226,42 @@ export class GeminiAIService implements AIService {
 
     const parsed = parsedSearchQueriesSchema.parse(JSON.parse(result.text as string));
     return parsed.queries;
+  }
+
+  async findRelatedUserIdsForEvent(event: Event, users: RelatedUserCandidate[]): Promise<string[]> {
+    if (!users.length) return [];
+
+    const condensedUsers = users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      profile: this.truncate(user.profile) ?? "",
+    }));
+
+    const condensedEvent = {
+      title: event.title,
+      description: this.truncate(event.description),
+      organizer: event.organizer,
+      tags: event.tags.map((tag) => tag.name),
+    };
+
+    const result = await this.ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: [
+        "Pilih user yang paling relevan untuk menerima informasi tentang event baru ini.",
+        "Pilih maksimal 10 user. Kembalikan array kosong jika tidak ada yang cocok.",
+        `Detail event:\n${JSON.stringify(condensedEvent, null, 2)}`,
+        `Daftar user (id, nama, profil):\n${JSON.stringify(condensedUsers, null, 2)}`,
+      ].join("\n\n"),
+      config: {
+        systemInstruction:
+          "Kamu adalah sistem rekomendasi notifikasi event. Pilih ID user dari daftar yang paling sesuai dengan tema, penyelenggara, dan deskripsi event. Jangan pernah menambah ID baru atau data lain. Jawab hanya dengan JSON valid sesuai schema.",
+        responseMimeType: "application/json",
+        responseSchema: z.toJSONSchema(parsedRelatedUserIdsSchema),
+      },
+    });
+
+    const parsed = parsedRelatedUserIdsSchema.parse(JSON.parse(result.text as string));
+    return parsed.userIds;
   }
 
   async findMatchingEventIds(

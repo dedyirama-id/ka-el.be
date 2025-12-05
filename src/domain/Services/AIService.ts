@@ -23,6 +23,12 @@ export type SearchableEvent = {
   priceMax: number;
 };
 
+export type RelatedUserCandidate = {
+  id: string;
+  name: string;
+  profile: string | null;
+};
+
 export interface AIService {
   replyGeneralMessage(message: string, history: ChatMessage[], user?: UserContext): Promise<string>;
   proofreadingMessage(message: string): Promise<string>;
@@ -36,4 +42,5 @@ export interface AIService {
     history: ChatMessage[],
     user?: UserContext,
   ): Promise<number[]>;
+  findRelatedUserIdsForEvent(event: Event, users: RelatedUserCandidate[]): Promise<string[]>;
 }
