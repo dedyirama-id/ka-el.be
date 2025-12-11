@@ -50,7 +50,7 @@ export class GeminiAIService implements AIService {
     ].join("\n");
 
     const result = await this.ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: finalPrompt,
       config: {
         temperature: 0.7,
@@ -73,7 +73,7 @@ export class GeminiAIService implements AIService {
     }
 
     const result = await this.ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         temperature: 0.7,
@@ -97,7 +97,7 @@ export class GeminiAIService implements AIService {
     }
 
     const result = await this.ai.models.generateContent({
-      model: "gemini-2.0-flash-001",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         systemInstruction:
@@ -165,7 +165,7 @@ export class GeminiAIService implements AIService {
     }
 
     const result = await this.ai.models.generateContent({
-      model: "gemini-2.0-flash-001",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         systemInstruction: [
@@ -193,7 +193,7 @@ export class GeminiAIService implements AIService {
     }
 
     const result = await this.ai.models.generateContent({
-      model: "gemini-2.0-flash-001",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         systemInstruction:
@@ -214,7 +214,7 @@ export class GeminiAIService implements AIService {
     }
 
     const result = await this.ai.models.generateContent({
-      model: "gemini-2.0-flash-001",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         systemInstruction:
@@ -245,7 +245,7 @@ export class GeminiAIService implements AIService {
     };
 
     const result = await this.ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: [
         "Pilih user yang paling relevan untuk menerima informasi tentang event baru ini.",
         "Pilih maksimal 10 user. Kembalikan array kosong jika tidak ada yang cocok.",
@@ -292,7 +292,7 @@ export class GeminiAIService implements AIService {
     const historyText = this.formatHistory(history);
     const userContext = this.formatUserContext(user);
     const result = await this.ai.models.generateContent({
-      model: "gemini-2.0-flash-001",
+      model: "gemini-2.5-flash",
       contents: [
         "Tentukan event yang paling relevan dengan permintaan pengguna berdasarkan daftar event berikut.",
         userContext ? `Profil pengguna (non-sensitif):\n${userContext}` : "",
