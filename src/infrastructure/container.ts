@@ -41,6 +41,7 @@ import { ReplyEditEventWaMessageUsecase } from "@/application/usecases/ReplyEdit
 import { ReplyListEventWaMessageUsecase } from "@/application/usecases/ReplyListEventWaMessageUsecase";
 import { ReplyShowEventWaMessageUsecase } from "@/application/usecases/ReplyShowEventWaMessageUsecase";
 import { ReplyRemoveEventWaMessageUsecase } from "@/application/usecases/ReplyRemoveEventWaMessageUsecase";
+import { AzureAIService } from "./ai/azure/AzureAIService";
 
 export interface Cradle {
   prisma: PrismaClient;
@@ -72,6 +73,8 @@ export interface Cradle {
   replyRemoveEventWaMessageUsecase: ReplyRemoveEventWaMessageUsecase;
 }
 
+const aiServiceClass = env.AI_PROVIDER === "gemini" ? GeminiAIService : AzureAIService;
+
 const container: AwilixContainer<Cradle> = createContainer<Cradle>({
   injectionMode: InjectionMode.PROXY,
   strict: true,
@@ -90,7 +93,7 @@ container.register({
       qrCallback: undefined,
     }),
   }).singleton(),
-  aiService: asClass(GeminiAIService).singleton(),
+  aiService: asClass(aiServiceClass).singleton(),
   idGenerator: asClass(IdGenerator).singleton(),
   messageGenerator: asClass(WaMessageGenerator).singleton(),
 
