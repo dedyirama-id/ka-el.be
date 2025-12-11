@@ -30,6 +30,8 @@ export const env = cleanEnv(Bun.env, {
   LOG_LEVEL: str({ default: "info" }),
   NODE_ENV: str({ choices: ["development", "production", "test"] }),
 
+  AI_PROVIDER: str({ choices: ["azure", "gemini"], default: "azure" }),
+
   WA_PHONE_NUMBER_ID: str({ default: "" }),
   WA_ACCESS_TOKEN: str({ default: "" }),
   WA_VERIFY_TOKEN: str({ default: "" }),
@@ -45,5 +47,11 @@ export const env = cleanEnv(Bun.env, {
   TWILIO_AUTH_TOKEN: str({ default: "" }),
   TWILIO_SANDBOX_NUMBER: whatsappSandboxNumber({ default: "" }),
 
-  GEMINI_API_KEY: str(),
+  AZURE_OPENAI_ENDPOINT: optionalUrl({ default: "" }),
+  AZURE_OPENAI_API_KEY: str({ default: "" }),
+  AZURE_OPENAI_DEPLOYMENT: str({ default: "" }),
+  AZURE_OPENAI_MODEL: str({ default: "" }),
+  AZURE_OPENAI_API_VERSION: str({ default: "" }),
+
+  GEMINI_API_KEY: str({ default: "" }),
 });
