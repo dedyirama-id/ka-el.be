@@ -1,3 +1,11 @@
+## [1.16.6](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.5...v1.16.6) (2025-12-11)
+
+
+### Bug Fixes
+
+* change gemini model to 2.5 flash ([ac203b6](https://github.com/dedyirama-id/ka-el.be/commit/ac203b633a7be8adaa4fe57e2f76b6e461bb6f64))
+* change message template ([848d0d1](https://github.com/dedyirama-id/ka-el.be/commit/848d0d1c85666c4aac9186f556a1ff91a3c584be))
+
 ## [1.16.5](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.4...v1.16.5) (2025-12-05)
 
 
