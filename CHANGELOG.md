@@ -1,3 +1,10 @@
+## [1.16.7](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.6...v1.16.7) (2025-12-11)
+
+
+### Bug Fixes
+
+* change ai service to azure open ai ([4a6c9eb](https://github.com/dedyirama-id/ka-el.be/commit/4a6c9ebd9d99e9e8d8cb75a9e5d0109fe645c67d))
+
 ## [1.16.6](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.5...v1.16.6) (2025-12-11)
 
 
