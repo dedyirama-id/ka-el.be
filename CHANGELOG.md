@@ -1,3 +1,10 @@
+## [1.16.8](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.7...v1.16.8) (2025-12-11)
+
+
+### Bug Fixes
+
+* change show price logic ([dccc7be](https://github.com/dedyirama-id/ka-el.be/commit/dccc7beb523fe6ffbafb7555e2d07866619729fb))
+
 ## [1.16.7](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.6...v1.16.7) (2025-12-11)
 
 
