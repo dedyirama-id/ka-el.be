@@ -1,3 +1,10 @@
+## [1.16.9](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.8...v1.16.9) (2025-12-14)
+
+
+### Bug Fixes
+
+* add on update constraint to all fk ([b8c19d1](https://github.com/dedyirama-id/ka-el.be/commit/b8c19d192b332b76a0bf331af3679c1fbcc1529b))
+
 ## [1.16.8](https://github.com/dedyirama-id/ka-el.be/compare/v1.16.7...v1.16.8) (2025-12-11)
 
 
