@@ -55,7 +55,7 @@ model Message {
   meta      Json?
   createdAt DateTime    @default(now())
 
-  user User? @relation(fields: [phoneNumber], references: [phoneE164], onDelete: Cascade)
+  user User? @relation(fields: [phoneNumber], references: [phoneE164], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("messages")
 }
@@ -96,8 +96,8 @@ model EventTag {
   eventId Int
   tagId   Int
 
-  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([eventId, tagId])
   @@map("event_tags")
@@ -107,8 +107,8 @@ model UserTag {
   userId String
   tagId  Int
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([userId, tagId])
   @@map("user_tags")
